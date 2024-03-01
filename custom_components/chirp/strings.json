@@ -1,0 +1,70 @@
+{
+    "config": {
+        "abort": {
+            "device_reserved": "Bridge connection to this ChirpStack server already exists, change host/port",
+            "chirp_server_no_tenants": "No tenants on configured ChirpStack server, create one and retry configuration"
+        },
+        "error": {
+            "tenant_no_applications": "Selected tenant does not have applications, select another or create application on ChirpStack server",
+            "chirpstack_connection_failed": "Could not establish connection to ChirpStack API server, fix configuration",
+            "mqtt_connection_failed": "Could not connect to MQTT server, check configuration"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "chirpstack_api_server": "Chirpstack API server",
+                    "server_port": "Server port",
+                    "api_connection_key": "Connection key"
+                },
+                "title": "Configure Chirpstack API server"
+            },
+            "select_tenant": {
+                "data": {
+                    "tenant": "Select tenant"
+                },
+                "title": "Select Chirpstack tenant for application selection"
+            },
+            "select_application": {
+                "data": {
+                    "application_name": "Select application"
+                },
+                "title": "Select tenant's application for listing devices"
+            },
+            "configure_mqtt": {
+                "data": {
+                    "mqtt_server": "MQTT server",
+                    "mqtt_port": "MQTT server port",
+                    "mqtt_user": "MQTT user name",
+                    "mqtt_password": "MQTT user password",
+                    "discovery_prefix": "HA MQTT discovery prefix"
+                },
+                "title": "Configure MQTT server used by ChirpStack and HA"
+            },
+            "device_sensors": {
+                "data": {
+                    "device_sensors": "Sensor id:name;device_class;state_class;category;units_of_mesurement;conversion_rule[;...]",
+                    "device_sensors:batteryLevel:Battery": "Sensor id:name;device_class;state_class;category;units_of_mesurement;conversion_rule[;...]"
+                },
+                "title": "Configure generic LoraWan sensors present on every device"
+            }
+        }
+    },
+    "entity": {
+        "sensor": {
+            "chirp_sensors": {
+                "name": "Number of ChirpStack SensorsX"
+            },
+            "chirp_devices": {
+                "name": "Number of ChirpStack devicesX"
+            },
+            "chirp_updated": {
+                "name": "Last updatedX"
+            }
+        },
+        "button": {
+            "chirp_reload": {
+                "name": "Reload LoraWan devicesX"
+            }
+        }
+    }
+}
