@@ -145,7 +145,7 @@ class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         default=DEFAULT_API_KEY
                         if not user_input
                         else user_input[CONF_API_KEY],
-                    ): vol.All(str,vol.Length(min=210, max=210)),
+                    ): vol.All(str,vol.Length(min=10)),
                 }
             ),
             errors=errors,
