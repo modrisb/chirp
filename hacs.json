@@ -1,5 +1,4 @@
 {
   "name": "Chirstack LoraWan integration",
-  "render_readme": true,
-  "country": ["US"]
+  "render_readme": true
 }
