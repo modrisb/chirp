@@ -314,20 +314,3 @@ class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 class AlreadyConfigured(exceptions.HomeAssistantError):
     """Error to indicate device is already configured."""
-
-class DNS(object):
-    """The length of a value must be in a certain range."""
-
-    def __call__(self, v):
-        try:
-            #result = dns.resolver.query(v, 'A')
-            #for ipval in result:
-            #    print('IP', ipval.to_text())
-            return v
-
-        # Objects that havbe no length e.g. None or strings will raise TypeError
-        except Exception:
-            raise Exception('invalid value or type')
-
-    def __repr__(self):
-        return 'DNS()'

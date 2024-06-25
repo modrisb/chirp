@@ -28,10 +28,12 @@ from tests.common import MockConfigEntry
 
 from .patches import api, grpc, message, mqtt, set_size
 
+DEF_API_KEY = "apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0apikey0"
+
 CONFIG_DATA = {
     CONF_API_SERVER: "localhost",
     CONF_API_PORT: 8080,
-    CONF_API_KEY: "apikey0",
+    CONF_API_KEY: DEF_API_KEY,
     CONF_TENANT: "TenantName0",
     CONF_APPLICATION: "ApplicationName0",
     CONF_APPLICATION_ID: "ApplicationId0",
@@ -48,8 +50,8 @@ CONFIG_OPTIONS = {
     CONF_OPTIONS_DEBUG_PAYLOAD: DEFAULT_OPTIONS_DEBUG_PAYLOAD,
 }
 
-# pytest tests/components/pijups/
-# pytest tests/components/pijups/ --cov=homeassistant.components.pijups --cov-report term-missing -vv
+# pytest tests/components/chirp/
+# pytest tests/components/chirp/ --cov=homeassistant.components.chirp --cov-report term-missing -vv
 
 
 @mock.patch("homeassistant.components.chirp.grpc.api", new=api)

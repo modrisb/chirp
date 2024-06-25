@@ -66,7 +66,7 @@ async def test_grpc_connection_failure(hass: HomeAssistant) -> None:
         user_input={
             CONF_API_SERVER: "localhost",
             CONF_API_PORT: 8080,
-            CONF_API_KEY: "apikey0",
+            CONF_API_KEY: common.DEF_API_KEY,
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
@@ -93,7 +93,7 @@ async def test_setup_with_no_tenants(hass: HomeAssistant) -> None:
         user_input={
             CONF_API_SERVER: "localhost",
             CONF_API_PORT: 8080,
-            CONF_API_KEY: "apikey0",
+            CONF_API_KEY: common.DEF_API_KEY,
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
@@ -120,7 +120,7 @@ async def test_setup_with_autoselected_tenant_no_apps(hass: HomeAssistant) -> No
         user_input={
             CONF_API_SERVER: "localhost",
             CONF_API_PORT: 8080,
-            CONF_API_KEY: "apikey0",
+            CONF_API_KEY: common.DEF_API_KEY,
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
@@ -147,7 +147,7 @@ async def test_setup_with_tenant_selection_no_apps(hass: HomeAssistant) -> None:
         user_input={
             CONF_API_SERVER: "localhost",
             CONF_API_PORT: 8080,
-            CONF_API_KEY: "apikey0",
+            CONF_API_KEY: common.DEF_API_KEY,
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
@@ -183,7 +183,7 @@ async def test_setup_with_auto_tenant_auto_apps(hass: HomeAssistant) -> None:
         user_input={
             CONF_API_SERVER: "localhost",
             CONF_API_PORT: 8080,
-            CONF_API_KEY: "apikey0",
+            CONF_API_KEY: common.DEF_API_KEY,
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
@@ -210,7 +210,7 @@ async def test_setup_with_auto_tenant_apps_selection(hass: HomeAssistant) -> Non
         user_input={
             CONF_API_SERVER: "localhost",
             CONF_API_PORT: 8080,
-            CONF_API_KEY: "apikey0",
+            CONF_API_KEY: common.DEF_API_KEY,
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
@@ -246,7 +246,7 @@ async def test_setup_with_auto_tenant_auto_apps_mqtt_fail(hass: HomeAssistant) -
         user_input={
             CONF_API_SERVER: "localhost",
             CONF_API_PORT: 8080,
-            CONF_API_KEY: "apikey0",
+            CONF_API_KEY: common.DEF_API_KEY,
         },
     )
     result = await hass.config_entries.flow.async_configure(
@@ -283,7 +283,7 @@ async def test_setup_with_auto_tenant_auto_apps_mqtt(hass: HomeAssistant) -> Non
         user_input={
             CONF_API_SERVER: "localhost",
             CONF_API_PORT: 8080,
-            CONF_API_KEY: "apikey0",
+            CONF_API_KEY: common.DEF_API_KEY,
         },
     )
     result = await hass.config_entries.flow.async_configure(
@@ -300,7 +300,7 @@ async def test_setup_with_auto_tenant_auto_apps_mqtt(hass: HomeAssistant) -> Non
     assert result["data"] == {
         CONF_API_SERVER: "localhost",
         CONF_API_PORT: 8080,
-        CONF_API_KEY: "apikey0",
+        CONF_API_KEY: common.DEF_API_KEY,
         CONF_TENANT: "TenantName0",
         CONF_APPLICATION: "ApplicationName0",
         CONF_APPLICATION_ID: "ApplicationId0",
@@ -327,7 +327,7 @@ async def test_setup_with_duplicate(hass: HomeAssistant) -> None:
     conf_data = {
         CONF_API_SERVER: "localhost",
         CONF_API_PORT: 8080,
-        CONF_API_KEY: "apikey0",
+        CONF_API_KEY: common.DEF_API_KEY,
         CONF_TENANT: "TenantName0",
         CONF_APPLICATION: "ApplicationName0",
         CONF_APPLICATION_ID: "ApplicationId0",
@@ -366,7 +366,7 @@ async def test_setup_with_duplicate(hass: HomeAssistant) -> None:
         user_input={
             CONF_API_SERVER: "localhost",
             CONF_API_PORT: 8080,
-            CONF_API_KEY: "apikey0",
+            CONF_API_KEY: common.DEF_API_KEY,
         },
     )
     result = await hass.config_entries.flow.async_configure(

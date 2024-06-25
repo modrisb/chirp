@@ -101,7 +101,10 @@ function getHaDeviceInfo() {
   };
 }
 
-Device information is used only for visualization, entities describe sensor details - how they are integrated into HA. value_template defines sensor value extraction rules from device payload and possible conversions (like converting to int/float and applying needed factors). Integration type is needed for MQTT to implement proper processing together with device class definition. 
+Device information is used only for visualization, entities describe sensor details - how they are integrated into HA. value_template defines sensor value extraction rules from device payload and possible conversions (like converting to int/float and applying needed factors). Integration type is needed for MQTT to implement proper processing together with device class definition.
+
+## Add-on version
+See https://github.com/modrisb/chirpha for add-on version of this integration.
 
 ## Credits
 [ChirpStack](https://chirpstack.io/) : open-source LoRaWAN Network Server<br>
