@@ -1,13 +1,13 @@
 {
     "config": {
         "abort": {
-            "chirp_server_no_tenants": "No tenants on configured ChirpStack server, create one and retry configuration",
-            "device_reserved": "Bridge connection to this ChirpStack server already exists, change host/port"
+            "chirp_server_reserved": "No tenants on configured ChirpStack server, create one and retry configuration"
         },
         "error": {
+            "tenant_no_applications": "Selected tenant does not have applications, select another or create application on ChirpStack server",
             "chirpstack_connection_failed": "Could not establish connection to ChirpStack API server, fix configuration",
             "mqtt_connection_failed": "Could not connect to MQTT server, check configuration",
-            "tenant_no_applications": "Selected tenant does not have applications, select another or create application on ChirpStack server"
+            "chirp_server_no_tenants": "No tenants on configured ChirpStack server, create one and retry configuration"
         },
         "step": {
             "configure_mqtt": {
