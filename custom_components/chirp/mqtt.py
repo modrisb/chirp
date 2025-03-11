@@ -574,16 +574,18 @@ class ChirpToHA:
             discovery_config["object_id"] = to_lower_case_no_blanks(
                 dev_conf["dev_eui"] + "_" + dev_id
             )
-        if discovery_config.get("payload_on"):
-            discovery_config["payload_on"] = discovery_config["payload_on"].format(
-                dev_eui=dev_conf["dev_eui"]
-            )
-        if discovery_config.get("payload_off"):
-            discovery_config["payload_off"] = discovery_config["payload_off"].format(
-                dev_eui=dev_conf["dev_eui"]
-            )
-        if discovery_config.get("command_topic") == "{command_topic}":
-            discovery_config["command_topic"] = comand_topic
+        for key in list(discovery_config):
+            value = discovery_config[key]
+            if not isinstance(value, str):
+                continue
+            if value == "{None}":
+                del discovery_config[key]
+            if value == "{command_topic}":
+                discovery_config[key] = comand_topic
+            if value == "{status_topic}":
+                discovery_config[key] = status_topic
+            if "{dev_eui}" in value:
+                discovery_config[key] = value.replace( "{dev_eui}", dev_conf["dev_eui"] )
         discovery_config["enabled_by_default"] = True
         if self._bridge_init_time:
             discovery_config["time_stamp"] = self._bridge_init_time + 1

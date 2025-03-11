@@ -175,6 +175,8 @@ def get_ha_descriptor(js_script):
         if char == "\n":
             is_comment = False
             continue
+        if char == "\t":
+            continue
         if is_comment:
             continue
         if not is_string:

@@ -4,7 +4,7 @@
     "documentation": "https://github.com/modrisb/chirp/",
     "issue_tracker": "https://github.com/modrisb/chirp/issues",
     "requirements": ["paho-mqtt==1.6.1", "chirpstack-api==4.6.0"],
-    "version": "1.0.12",
+    "version": "1.0.13",
     "dependencies": [],
     "codeowners": ["@modrisb"],
     "config_flow": true,
