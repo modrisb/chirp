@@ -1,5 +1,6 @@
 """Mocks for ChirpStack grpc api, paho mqtt."""
 import json
+import enum
 
 MODEL_SIZES = [
     {
@@ -116,6 +117,10 @@ class message:
 
 class mqtt:
     """Mock paho mqtt interface."""
+    class CallbackAPIVersion(enum.Enum):
+        """Defined the arguments passed to all user-callback."""
+        VERSION1 = 1
+        VERSION2 = 2
 
     class Client:
         """Mock paho mqtt Client class."""
@@ -130,7 +135,10 @@ class mqtt:
         stat_devices = 0
         stat_sensors = 0
 
-        def __new__(cls):
+        def __init__(self, version):
+            pass
+
+        def __new__(cls, version):
             """Implement singleton for test."""
             if not hasattr(cls, "instance"):
                 cls.instance = super(mqtt.Client, cls).__new__(cls)

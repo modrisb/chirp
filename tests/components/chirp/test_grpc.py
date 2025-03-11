@@ -14,7 +14,7 @@ async def test_faulty_codec(hass: HomeAssistant):
         await hass.async_block_till_done()
         set_size(devices=1, codec=3)
         await common.reload_devices(hass, config)
-        assert mqtt.Client().stat_devices == 0 and mqtt.Client().stat_sensors == 0
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices == 0 and mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 0
 
     await common.chirp_setup_and_run_test(hass, True, run_test_faulty_codec)
 
@@ -28,7 +28,7 @@ async def test_codec_with_single_q_strings(hass: HomeAssistant):
         await hass.async_block_till_done()
         set_size(devices=1, codec=16)
         await common.reload_devices(hass, config)
-        assert mqtt.Client().stat_sensors == get_size("devices")
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == get_size("devices")
 
     await common.chirp_setup_and_run_test(
         hass, True, run_test_codec_with_single_q_strings
@@ -42,7 +42,7 @@ async def test_with_devices_disabled(hass: HomeAssistant):
         await hass.async_block_till_done()
         set_size(disabled=True)
         await common.reload_devices(hass, config)
-        assert mqtt.Client().stat_sensors == 0
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 0
 
     await common.chirp_setup_and_run_test(hass, True, run_test_with_devices_disabled)
 
@@ -54,13 +54,13 @@ async def test_codec_prologue_issues(hass: HomeAssistant):
         await hass.async_block_till_done()
         set_size(devices=1, codec=11)  # function name missing
         await common.reload_devices(hass, config)
-        assert mqtt.Client().stat_sensors == 0
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 0
         set_size(devices=1, codec=12)  # return statement missing
         await common.reload_devices(hass, config)
-        assert mqtt.Client().stat_sensors == 0
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 0
         set_size(devices=1, codec=13)  # { after return statement missing
         await common.reload_devices(hass, config)
-        assert mqtt.Client().stat_sensors == 0
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 0
 
     await common.chirp_setup_and_run_test(hass, True, run_test_codec_prologue_issues)
 
@@ -72,9 +72,9 @@ async def test_codec_with_comment(hass: HomeAssistant):
         await hass.async_block_till_done()
         set_size(codec=4)  # correct comment, codec correct
         await common.reload_devices(hass, config)
-        assert get_size("devices") == mqtt.Client().stat_devices  ### device count check
+        assert get_size("devices") == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices  ### device count check
         set_size(codec=14)  # incorrect comment, codec should fail
         await common.reload_devices(hass, config)
-        assert mqtt.Client().stat_sensors == 0
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 0
 
     await common.chirp_setup_and_run_test(hass, True, run_test_codec_with_comment)

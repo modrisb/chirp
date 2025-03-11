@@ -92,6 +92,6 @@ async def reload_devices(hass: HomeAssistant, config):
     """Reload devices from ChirpStack server and wait for activity completion."""
     await hass.async_block_till_done()
     restart_topic = f"application/{config.data.get(CONF_APPLICATION_ID)}/bridge/restart"
-    mqtt.Client().reset_stats()
-    mqtt.Client().on_message(mqtt.Client(), None, message(restart_topic, ""))
+    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_stats()
+    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).on_message(mqtt.Client(mqtt.CallbackAPIVersion.VERSION2), None, message(restart_topic, ""))
     await hass.async_block_till_done()
