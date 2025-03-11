@@ -73,7 +73,7 @@ class ChirpToHA:
         self._dev_count = 0
         self._last_update = None
         self._discovery_prefix = self._entry.data.get(CONF_MQTT_DISC)
-        self._client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        self._client = mqtt.Client()
         self._client.username_pw_set(self._user, self._pwd)
         self._client.connect(self._host, self._port)
         self._origin = {
