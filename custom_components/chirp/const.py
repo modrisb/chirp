@@ -35,6 +35,10 @@ DEFAULT_MQTT_USER = ""
 DEFAULT_MQTT_PWD = ""
 DEFAULT_MQTT_DISC = "homeassistant"
 
+CHIRPSTACK_TENANT = "HA owned"
+CHIRPSTACK_APPLICATION = "HA integration"
+CHIRPSTACK_API_KEY_NAME = "chirpha"
+
 CONF_OPTIONS_START_DELAY = "options_start_delay"
 DEFAULT_OPTIONS_START_DELAY = 2
 CONF_OPTIONS_RESTORE_AGE = "options_restore_age"
@@ -58,3 +62,31 @@ BRIDGE_CONF_COUNT = 2
 STATISTICS_SENSORS = "chirp_sensors"
 STATISTICS_DEVICES = "chirp_devices"
 STATISTICS_UPDATED = "chirp_updated"
+
+CONF_OPTIONS_LOG_LEVEL = "options_log_level"
+CONF_OPTIONS_ONLINE_PER_DEVICE = "options_online_per_device"
+CONF_OPTIONS_EXPIRE_AFTER = "options_add_expire_after"
+DEFAULT_OPTIONS_LOG_LEVEL = "info"
+DEFAULT_OPTIONS_EXPIRE_AFTER = False
+DEFAULT_OPTIONS_ONLINE_PER_DEVICE = 0
+MQTT_ORIGIN = "ChirpLora"
+BRIDGE_VENDOR = "Chirp2MQTT"
+BRIDGE_NAME = "Chirp2MQTT Bridge"
+BRIDGE = "Bridge"
+BRIDGE_STATE_ID = "state"
+BRIDGE_ENTITY_NAME = "Connection state"
+INTEGRATION_DEV_NAME = "ChirpStack LoraWan Integration"
+CONNECTIVITY_DEVICE_CLASS = "connectivity"
+BRIDGE_RESTART_ID = "restart"
+BRIDGE_RESTART_NAME = "Reload devices"
+BRIDGE_LOGLEVEL_ID = "log_level"
+BRIDGE_LOGLEVEL_NAME = "Log level"
+
+BRIDGE_CONF_COUNT = 3
+
+ENTITY_CATEGORY_DIAGNOSTIC = "diagnostic"
+
+ERRMSG_CODEC_ERROR = "Profile %s discovery codec script error '%s', source code '%s' converted to json '%s'"
+ERRMSG_DEVICE_IGNORED = "Discovery codec (%s->%s) missing or faulty for device %s with profile %s, device ignored"
+WARMSG_APPID_WRONG = "'%s' is not valid application ID, using '%s' (tenant '%s', application '%s')"
+WARMSG_DEVCLS_REMOVED = "Could not detect integration by device class %s for device %s, integration set to 'sensor', device class removed"

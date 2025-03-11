@@ -3,36 +3,72 @@ from __future__ import annotations
 
 import json
 import logging
+import subprocess
+import dukpy
+import re
 
 from chirpstack_api import api
 import grpc
 
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-
-from .const import CONF_API_KEY, CONF_API_PORT, CONF_API_SERVER, CONF_APPLICATION_ID
+from .const import CONF_API_PORT, CONF_API_SERVER, CONF_APPLICATION_ID, CHIRPSTACK_TENANT, CHIRPSTACK_APPLICATION, ERRMSG_CODEC_ERROR
+from .const import ERRMSG_DEVICE_IGNORED, WARMSG_APPID_WRONG, CHIRPSTACK_API_KEY_NAME, CONF_API_KEY
 
 _LOGGER = logging.getLogger(__name__)
-
 
 class ChirpGrpc:
     """Chirp2MQTT grpc interface support."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(self, config, version) -> None:
         """Open connection to ChirpStack api server."""
-        self._hass = hass
-        self._entry = entry
-        self._application_id = entry.data.get(CONF_APPLICATION_ID)
+        self._config = config
+        self._version = version
+        self._application_id = self._config.get(CONF_APPLICATION_ID)
         self._channel = grpc.insecure_channel(
-            f"{self._entry.data.get(CONF_API_SERVER)}:{self._entry.data.get(CONF_API_PORT)}"
+            f"{self._config.get(CONF_API_SERVER)}:{self._config.get(CONF_API_PORT)}"
         )
-        self._auth_token = [("authorization", f"Bearer {entry.data.get(CONF_API_KEY)}")]
-        _LOGGER.debug(
-            "gRPC channel opened for %s:%s",
-            entry.data.get(CONF_API_SERVER),
-            entry.data.get(CONF_API_PORT),
+        bearer = self._config.get(CONF_API_KEY)
+        self._token_id = "external"
+        if not bearer:
+            token_message = subprocess.run(["chirpstack", "-c", "/etc/chirpstack", "create-api-key", "--name", CHIRPSTACK_API_KEY_NAME], capture_output=True, text=True).stdout
+            self._token_id = token_message.split("id: ")[-1].split("\n")[0]
+            bearer = token_message.split("token: ")[-1].rstrip("\n")
+        self._auth_token = [("authorization", f"Bearer {bearer}")]
+        _LOGGER.info(
+            "gRPC channel opened for %s:%s, token id %s",
+            self._config.get(CONF_API_SERVER),
+            self._config.get(CONF_API_PORT),
+            self._token_id,
         )
-        _LOGGER.debug("ChirpStack application ID %s", self._application_id)
+        if not self.is_valid_app_id( self._application_id):
+            tenants_on_chirp = self.get_chirp_tenants()
+            if len(tenants_on_chirp) == 0:
+                tenant = api.TenantServiceStub(self._channel)
+                createTenantReq = api.CreateTenantRequest()
+                createTenantReq.tenant.name = CHIRPSTACK_TENANT
+                createTenantReq.tenant.can_have_gateways = True
+                createTenantReq.tenant.max_gateway_count = 1
+                tenantResp = tenant.Create(createTenantReq, metadata=self._auth_token)
+                _LOGGER.info("Tenant '%s' (id %s) created", createTenantReq.tenant.name, tenantResp.id)
+                tenants_on_chirp = self.get_chirp_tenants()
+            for tenant, id in tenants_on_chirp.items():
+                tenant_id = id
+                break
+            applications_on_chirp = self.get_tenant_applications(tenant_id)
+            if len(applications_on_chirp) == 0:
+                application = api.ApplicationServiceStub(self._channel)
+                createApplicationReq = api.CreateApplicationRequest()
+                createApplicationReq.application.name = CHIRPSTACK_APPLICATION
+                createApplicationReq.application.tenant_id = tenant_id
+                applicationResp = application.Create(createApplicationReq, metadata=self._auth_token)
+                _LOGGER.info("Application '%s' (id %s, tenant %s) created", createApplicationReq.application.name, tenant, applicationResp.id)
+                applications_on_chirp = self.get_tenant_applications(tenant_id)
+            for application, id in applications_on_chirp.items():
+                application_id = id
+                break
+            _LOGGER.warning(WARMSG_APPID_WRONG, self._application_id, application_id, tenant, application)
+            self._application_id = application_id
+        self.js_interpreter = dukpy.JSInterpreter()
+        _LOGGER.info("ChirpStack application ID %s", self._application_id)
 
     def get_chirp_tenants(self):
         """Get tenant list from api server, build name/id dictionary and return."""
@@ -58,6 +94,17 @@ class ChirpGrpc:
         return {
             application.name: application.id for application in applicationsResp.result
         }
+
+    def is_valid_app_id(self, application_id):
+        """Check application id validity with api server."""
+        application = api.ApplicationServiceStub(self._channel)
+        applicationReq = api.GetApplicationRequest()
+        applicationReq.id = application_id
+        try:
+            application.Get( applicationReq, metadata=self._auth_token )
+        except Exception:
+            return False
+        return True
 
     def get_chirp_app_devices(self):
         """Get application's devices from api server."""
@@ -102,10 +149,25 @@ class ChirpGrpc:
             if self.isDeviceDisbled(device.dev_eui):
                 continue
             profile = self.get_chirp_device_profile(device.device_profile_id)
-            discovery_json = get_ha_descriptor(
-                profile.device_profile.payload_codec_script
-            )
-            discovery = discovery_json[0]
+            discovery = None
+            codec_code = None
+            codec_json = None
+            try:
+                mi_start = re.search(r"function\s+getHaDeviceInfo", profile.device_profile.payload_codec_script)
+                if mi_start:
+                    i_start = mi_start.start()
+                    codec_code = profile.device_profile.payload_codec_script[i_start:]
+                    discovery = self.js_interpreter.evaljs(codec_code+"; JSON.stringify(getHaDeviceInfo())")
+                    codec_json = discovery
+            except Exception as error:  # pylint: disable=broad-exception-caught
+                _LOGGER.error(
+                    ERRMSG_CODEC_ERROR,
+                    profile.device_profile.name,
+                    str(error),
+                    codec_code,
+                    codec_json,
+                )
+                discovery = None
             if discovery:
                 try:
                     discovery = json.loads(discovery)
@@ -114,13 +176,14 @@ class ChirpGrpc:
                         "Profile %s discovery codec script error '%s', source code '%s' converted to json '%s'",
                         profile.device_profile.name,
                         str(error),
-                        discovery_json[1],
-                        discovery_json[0],
+                        codec_code,
+                        discovery,
                     )
                     discovery = None
             if not discovery:
                 _LOGGER.error(
-                    "Discovery codec missing or faulty for device %s with profile %s, device ignored",
+                    ERRMSG_DEVICE_IGNORED,
+                    codec_code, codec_json,
                     device.name,
                     profile.device_profile.name,
                 )
@@ -131,6 +194,7 @@ class ChirpGrpc:
                     discovery_config[
                         "value_template"
                     ] = f"{{{{ value_json.object.{entity} }}}}"
+                discovery_config["uplink_interval"] = profile.device_profile.uplink_interval
 
             mac_version = (
                 profile.device_profile.DESCRIPTOR.fields_by_name["mac_version"]
@@ -139,6 +203,7 @@ class ChirpGrpc:
             )
             mac_version = (mac_version.replace("_", " ", 1)).replace("_", ".")
             discovery["dev_conf"] = {
+                "last_seen": device.last_seen_at if str(device.last_seen_at) else None,
                 "sw_version": mac_version,
                 "dev_eui": device.dev_eui,
                 "dev_name": device.name,
@@ -153,89 +218,12 @@ class ChirpGrpc:
             devices_list.append(discovery)
         return devices_list
 
-
-def get_ha_descriptor(js_script):
-    """Convert restricted javascript function getHaDeviceInfo code to python dictionary/array structure."""
-    i_start = js_script.find("getHaDeviceInfo")
-    if i_start >= 0:
-        i_start = js_script.find("return", i_start)
-    if i_start >= 0:
-        i_start = js_script.find("{", i_start)
-    if i_start < 0:
-        return (None, js_script)
-    open_curl = 0
-    is_string = False
-    is_name = False
-    is_1st_slash = False
-    is_comment = False
-    json_out = ""
-    quote = '"'
-    getHaDeviceInfoSource = js_script[i_start:]
-    for char in getHaDeviceInfoSource:
-        if char == "\n":
-            is_comment = False
-            continue
-        if char == "\t":
-            continue
-        if is_comment:
-            continue
-        if not is_string:
-            if char == "/":
-                if not is_1st_slash:
-                    is_1st_slash = True
-                    continue
-                is_1st_slash = False
-                is_comment = True
-                continue
-            if is_1st_slash:
-                is_1st_slash = False
-                json_out += "/"
-            if char == " ":
-                continue
-            if char == "{":
-                open_curl += 1
-                json_out += char
-                json_out += '"'
-                is_name = True
-                continue
-            if char == "}":
-                open_curl -= 1
-                if is_name:
-                    json_out += '"'
-                    is_name = False
-                json_out += char
-                if open_curl <= 0:
-                    break
-                continue
-            if char == ":":
-                if is_name:
-                    json_out += '"'
-                    is_name = False
-                json_out += char
-                continue
-            if char == '"':
-                json_out += char
-                is_string = True
-                quote = char
-                continue
-            if char == "'":
-                json_out += '"'
-                is_string = True
-                quote = char
-                continue
-            if char == ",":
-                json_out += char
-                json_out += '"'
-                is_name = True
-                continue
-            is_name = char != ","
-            json_out += char
-        elif char == quote:
-            is_string = False
-            json_out += '"'
-        else:
-            if quote != '"' and char == '"':
-                json_out += "\\"
-            json_out += char
-    json_out = json_out.replace(',""', "")
-    return (json_out, getHaDeviceInfoSource)
+    def get_device_visibility_info(self, dev_eui):
+        """Get device visibility data from api server: device last seen time stamp and expected uplink interval."""
+        device = self.get_chirp_device(dev_eui)
+        profile = self.get_chirp_device_profile(device.device.device_profile_id)
+        visibility = {}
+        visibility["uplink_interval"] = profile.device_profile.uplink_interval
+        visibility["device_status_req_interval"] = profile.device_profile.device_status_req_interval
+        visibility["last_seen"] = device.last_seen_at.seconds+device.last_seen_at.nanos*1e-9 if str(device.last_seen_at) else 0
+        return visibility

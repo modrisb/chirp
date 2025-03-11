@@ -94,6 +94,9 @@ class ChirpSensor(SensorEntity):
 
     async def async_update(self):
         """Update sensor values/states."""
-        self._attr_native_value = self._mqtt_client.get_sensor_statistics()[
-            self.entity_description.key
-        ]
+        if self.entity_description.key == STATISTICS_SENSORS:
+            self._attr_native_value = self._mqtt_client._dev_sensor_count
+        elif self.entity_description.key == STATISTICS_DEVICES:
+            self._attr_native_value = self._mqtt_client._dev_count
+        elif self.entity_description.key == STATISTICS_UPDATED:
+            self._attr_native_value = self._mqtt_client._last_update

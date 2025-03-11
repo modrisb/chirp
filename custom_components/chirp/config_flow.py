@@ -2,7 +2,6 @@
 import hashlib
 import logging
 from typing import Any
-#import dns.resolver
 
 import voluptuous as vol
 
