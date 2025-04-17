@@ -103,7 +103,8 @@ class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                self._grpc_channel = ChirpGrpc(self._hass, user_input)
+                user_input[CONF_APPLICATION_ID] = ""
+                self._grpc_channel = ChirpGrpc(user_input, None)
                 self._tenants_list = self._grpc_channel.get_chirp_tenants()
                 if self._tenants_list == {}:
                     errors[CONF_API_SERVER] = CONF_CHIRP_NO_TENANTS
@@ -246,8 +247,8 @@ class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 entry.data = self._input
                 entry.options = {}
                 entry.unique_id = unique_id
-                self._grpc_channel = ChirpToHA(self._hass, entry, None)
-                self._grpc_channel.close()
+                mqtt_client = ChirpToHA(entry.data, None, None, self._grpc_channel)
+                mqtt_client.close()
                 return self.async_create_entry(
                     title=DEFAULT_NAME,
                     data=self._input,
