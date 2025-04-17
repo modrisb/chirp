@@ -103,9 +103,7 @@ class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                entry = lambda: None
-                entry.data = user_input
-                self._grpc_channel = ChirpGrpc(self._hass, entry)
+                self._grpc_channel = ChirpGrpc(self._hass, user_input)
                 self._tenants_list = self._grpc_channel.get_chirp_tenants()
                 if self._tenants_list == {}:
                     errors[CONF_API_SERVER] = CONF_CHIRP_NO_TENANTS
