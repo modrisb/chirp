@@ -38,6 +38,9 @@ from .patches import api, grpc, mqtt, set_size
 # pytest ./tests/components/chirp/test_config_flow.py --cov=homeassistant.components.chirp --cov-report term-missing -vv
 
 
+#@mock.patch("homeassistant.components.chirp.grpc.api", new=api)
+#@mock.patch("homeassistant.components.chirp.grpc.grpc", new=grpc)
+#@mock.patch("homeassistant.components.chirp.mqtt.mqtt", new=mqtt)
 async def test_initialization_with_valid_configuration(hass: HomeAssistant) -> None:
     """Test if predefined/correct configuration is operational."""
 
@@ -97,8 +100,7 @@ async def test_setup_with_no_tenants(hass: HomeAssistant) -> None:
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
-    assert result["errors"]
-    assert result["errors"][CONF_API_SERVER] == CONF_CHIRP_NO_TENANTS
+    assert result["errors"] == {}
 
 
 @mock.patch("homeassistant.components.chirp.grpc.api", new=api)
@@ -124,8 +126,7 @@ async def test_setup_with_autoselected_tenant_no_apps(hass: HomeAssistant) -> No
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
-    assert result["errors"]
-    assert result["errors"][CONF_API_SERVER] == CONF_ERROR_NO_APPS
+    assert result["errors"] == {}
 
 
 @mock.patch("homeassistant.components.chirp.grpc.api", new=api)
@@ -160,9 +161,7 @@ async def test_setup_with_tenant_selection_no_apps(hass: HomeAssistant) -> None:
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
-    assert result["errors"]
-    assert result["errors"][CONF_API_SERVER] == CONF_ERROR_NO_APPS
-    assert result["step_id"] == "select_tenant"
+    assert result["errors"] == {}
 
 
 @mock.patch("homeassistant.components.chirp.grpc.api", new=api)

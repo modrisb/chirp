@@ -90,7 +90,7 @@ class ChirpToHA:
     """Chirpstack LoRaWan MQTT interface."""
 
     def __init__(
-        self, config, version, classes, grpc_client: ChirpGrpc
+        self, config, version, classes, grpc_client: ChirpGrpc, connectivity_check_only=False
     ) -> None:
         """Open connection to HA MQTT server and initialize internal variables."""
         self._config = config
@@ -165,21 +165,23 @@ class ChirpToHA:
             }
         ]
 
-        self._wait_for_ha_online = threading.Thread(target=self.ha_online_waiter)
-        self._wait_for_dev_check = threading.Thread(target=self.dev_check_waiter)
-        self._wait_for_cur = threading.Thread(target=self.cur_waiter)
+        if not connectivity_check_only:
+            self._wait_for_ha_online = threading.Thread(target=self.ha_online_waiter)
+            self._wait_for_dev_check = threading.Thread(target=self.dev_check_waiter)
+            self._wait_for_cur = threading.Thread(target=self.cur_waiter)
 
-        self.publish( self._initialize_topic, "initialize" )
-        _LOGGER.info(
-            "Bridge setup 'initialize' message published",
-        )
+            self.publish( self._initialize_topic, "initialize" )
+            _LOGGER.info(
+                "Bridge setup 'initialize' message published",
+            )
+        else:
+            rc = self._client.loop_read(1)
 
     def on_connect(self, client, userdata, connect_flags, reason_code, properties):
         """MQTT api connection callback: throws error for failure cases."""
+        self._client.on_connect = None
         if reason_code.is_failure:
             raise Exception(f"MQTT connection failed: {reason_code.value} - '{reason_code}'")
-        else:
-            self._client.on_connect = None
 
     def subscribe(self, topic):
         """MQTT subscribe api wrapper: throws error for failure cases."""

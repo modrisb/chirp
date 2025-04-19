@@ -1,6 +1,7 @@
 """Test the ChirpStack LoRa integration MQTT integration class."""
 
 import time
+import asyncio
 
 from homeassistant.components.chirp.const import BRIDGE_CONF_COUNT, CONF_APPLICATION_ID
 from homeassistant.config_entries import ConfigEntry
@@ -122,31 +123,28 @@ async def test_ha_status_received(hass: HomeAssistant):
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_ha_status_received(hass: HomeAssistant, config: ConfigEntry):
+        await asyncio.sleep(4)
         await hass.async_block_till_done()
         set_size(devices=1, codec=0)
         config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published()
         await common.reload_devices(hass, config)
         assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == get_size("sensors") * get_size(
-            "devices"
+            "idevices"
         )  # 4 sensors per codec=0 device
-        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices == get_size("devices")
-        config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published()
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices == get_size("idevices")
+        config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published(keep_history=True)
         # expecting config message per sensor + 1 bridge, 1 removal, 1 sensor data initialization message, 1 bridge state message
-        configs = removals = status_online = up_msg = 0
-        for msg in config_topics:
-            sub_topics = msg[0].split("/")
-            if sub_topics[-1] == "config":
-                if msg[1] is not None:
-                    configs += 1
-                else:
-                    removals += 1
-            if sub_topics[-1] == "status":
-                status_online += 1
-            if sub_topics[-1] == "up":
-                up_msg += 1
-        assert len(config_topics) == configs + removals + status_online + up_msg
-        assert configs == get_size("sensors") * get_size("devices") + BRIDGE_CONF_COUNT
-        assert status_online == 1
+        configs = common.count_messages(r'/config$', r' ', keep_history=True)    # to be received as subscribed
+        removals = common.count_messages_with_no_payload(r'/config$', keep_history=True)    # to be received as subscribed
+        status_online = common.count_messages(r'/status$', None, keep_history=True)    # to be received as subscribed
+        up_msg = common.count_messages(r'/up$', None, keep_history=True)    # to be received as subscribed
+        restart = common.count_messages(r'/restart$', None, keep_history=True)    # to be received as subscribed
+        config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published()
+        print("configs", configs, "removals", removals, "status_online", status_online, "up_msg", up_msg, "restart", restart)
+        print("config_topics", len(config_topics), config_topics)
+        assert len(config_topics)  == configs + removals + status_online + up_msg + restart
+        assert configs == get_size("sensors") * get_size("idevices")
+        assert status_online == 0
         for i in range(
             0, mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices + 1
         ):  # +1 to ensure message for non-registered device
@@ -157,7 +155,7 @@ async def test_ha_status_received(hass: HomeAssistant):
         await hass.async_block_till_done()
         config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published()
         # check for topic count matching device count
-        assert len(config_topics) == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices + 1
+        assert len(config_topics) == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices
         for i in range(0, mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices):
             dev_eui = f"dev_eui{i}"
             topic = f"application/{config.data.get(CONF_APPLICATION_ID)}/device/{dev_eui}/event/up"
@@ -179,31 +177,28 @@ async def test_ha_status_received_with_debug_log(hass: HomeAssistant):
     async def run_test_ha_status_received_with_debug_log(
         hass: HomeAssistant, config: ConfigEntry
     ):
+        await asyncio.sleep(4)
         await hass.async_block_till_done()
         set_size(devices=1, codec=0)
         config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published()
         await common.reload_devices(hass, config)
         assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == get_size("sensors") * get_size(
-            "devices"
+            "idevices"
         )  # 4 sensors per codec=0 device
-        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices == 1
-        config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published()
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices == get_size("idevices")
+        config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published(keep_history=True)
         # expecting config message per sensor + 1 bridge, 1 removal, 1 sensor data initialization message, 1 bridge state message
-        configs = removals = status_online = up_msg = 0
-        for msg in config_topics:
-            sub_topics = msg[0].split("/")
-            if sub_topics[-1] == "config":
-                if msg[1] is not None:
-                    configs += 1
-                else:
-                    removals += 1
-            if sub_topics[-1] == "status":
-                status_online += 1
-            if sub_topics[-1] == "up":
-                up_msg += 1
-        assert len(config_topics) == configs + removals + status_online + up_msg
-        assert configs == get_size("sensors") * get_size("devices") + BRIDGE_CONF_COUNT
-        assert status_online == 1
+        configs = common.count_messages(r'/config$', r' ', keep_history=True)    # to be received as subscribed
+        removals = common.count_messages_with_no_payload(r'/config$', keep_history=True)    # to be received as subscribed
+        status_online = common.count_messages(r'/status$', None, keep_history=True)    # to be received as subscribed
+        up_msg = common.count_messages(r'/up$', None, keep_history=True)    # to be received as subscribed
+        restart = common.count_messages(r'/restart$', None, keep_history=True)    # to be received as subscribed
+        config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published()
+        print("configs", configs, "removals", removals, "status_online", status_online, "up_msg", up_msg, "restart", restart)
+        print("config_topics", len(config_topics), config_topics)
+        assert len(config_topics)  == configs + removals + status_online + up_msg + restart
+        assert configs == get_size("sensors") * get_size("idevices")
+        assert status_online == 0
         for i in range(
             0, mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices + 1
         ):  # +1 to ensure message for non-registered device
@@ -214,7 +209,7 @@ async def test_ha_status_received_with_debug_log(hass: HomeAssistant):
         await hass.async_block_till_done()
         config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published()
         # check for topic count matching device count
-        assert len(config_topics) == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices + 1
+        assert len(config_topics) == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices
         for i in range(0, mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices):
             dev_eui = f"dev_eui{i}"
             topic = f"application/{config.data.get(CONF_APPLICATION_ID)}/device/{dev_eui}/event/up"

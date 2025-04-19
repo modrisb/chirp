@@ -39,7 +39,7 @@ class ChirpGrpc:
             self._config.get(CONF_API_PORT),
             self._token_id,
         )
-        if not self.is_valid_app_id( self._application_id):
+        if not self.is_valid_app_id( self._application_id ):
             tenants_on_chirp = self.get_chirp_tenants()
             if len(tenants_on_chirp) == 0:
                 tenant = api.TenantServiceStub(self._channel)

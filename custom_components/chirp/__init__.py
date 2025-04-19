@@ -62,10 +62,16 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug(
         "async_unload_entry started"
     )
+    _LOGGER.debug(
+        "async_unload_entry closed",
+    )
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    _LOGGER.debug(
+        "async_unload_entry platforms %s", unload_ok
+    )
     if unload_ok:
-        hass.data[DOMAIN][entry.entry_id][GRPCLIENT].close()
         hass.data[DOMAIN][entry.entry_id][MQTTCLIENT].close()
+        hass.data[DOMAIN][entry.entry_id][GRPCLIENT].close()
         hass.data[DOMAIN].pop(entry.entry_id)
     _LOGGER.debug(
         "async_unload_entry completed, platform unload return code %s", unload_ok

@@ -61,6 +61,8 @@ async def async_setup_entry(
     async_add_entities(sensors, True)
     _LOGGER.debug("async_setup_entry %s sensors added", len(sensors))
 
+async def async_unload():
+    pass
 
 class ChirpSensor(SensorEntity):
     """Implementation of Chirp sensor."""

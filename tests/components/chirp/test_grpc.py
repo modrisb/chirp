@@ -3,6 +3,7 @@
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from tests.components.chirp import common
+import asyncio
 
 from .patches import get_size, mqtt, set_size
 
@@ -15,6 +16,8 @@ async def test_faulty_codec(hass: HomeAssistant):
         set_size(devices=1, codec=3)
         await common.reload_devices(hass, config)
         assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices == 0 and mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 0
+#                    assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == get_size("sensors") * get_size("idevices")
+#                    assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices == get_size("idevices")
 
     await common.chirp_setup_and_run_test(hass, True, run_test_faulty_codec)
 
@@ -25,10 +28,12 @@ async def test_codec_with_single_q_strings(hass: HomeAssistant):
     async def run_test_codec_with_single_q_strings(
         hass: HomeAssistant, config: ConfigEntry
     ):
-        await hass.async_block_till_done()
+        print("run_test_codec_with_single_q_strings 1")
         set_size(devices=1, codec=16)
+        print("run_test_codec_with_single_q_strings 2")
         await common.reload_devices(hass, config)
-        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == get_size("devices")
+        print("run_test_codec_with_single_q_strings 3")
+        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == get_size("sensors") * get_size("idevices")
 
     await common.chirp_setup_and_run_test(
         hass, True, run_test_codec_with_single_q_strings
@@ -72,9 +77,11 @@ async def test_codec_with_comment(hass: HomeAssistant):
         await hass.async_block_till_done()
         set_size(codec=4)  # correct comment, codec correct
         await common.reload_devices(hass, config)
-        assert get_size("devices") == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices  ### device count check
+        await hass.async_block_till_done()
+        assert get_size("idevices") == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices  ### device count check
         set_size(codec=14)  # incorrect comment, codec should fail
         await common.reload_devices(hass, config)
+        await hass.async_block_till_done()
         assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 0
 
     await common.chirp_setup_and_run_test(hass, True, run_test_codec_with_comment)

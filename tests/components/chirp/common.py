@@ -1,5 +1,7 @@
 """Common routines/constants for bridge tests."""
 from unittest import mock
+import asyncio
+import re
 
 from homeassistant.components.chirp.config_flow import generate_unique_id
 from homeassistant.components.chirp.const import (
@@ -45,8 +47,8 @@ CONFIG_DATA = {
 }
 
 CONFIG_OPTIONS = {
-    CONF_OPTIONS_START_DELAY: DEFAULT_OPTIONS_START_DELAY,
-    CONF_OPTIONS_RESTORE_AGE: DEFAULT_OPTIONS_RESTORE_AGE,
+    CONF_OPTIONS_START_DELAY: 0, #DEFAULT_OPTIONS_START_DELAY,
+    CONF_OPTIONS_RESTORE_AGE: 0, #DEFAULT_OPTIONS_RESTORE_AGE,
     CONF_OPTIONS_DEBUG_PAYLOAD: DEFAULT_OPTIONS_DEBUG_PAYLOAD,
 }
 
@@ -84,14 +86,47 @@ async def chirp_setup_and_run_test(
         message(f"{entry.data.get(CONF_MQTT_DISC)}/status", "online"),
     )
 
+    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).wait_empty_queue()
+    await hass.async_block_till_done()
+    #await asyncio.sleep(0.5)
+
     if expected_entry_setup:
         await run_test_case(hass, entry)
+
+    await hass.config_entries.async_unload(entry.entry_id)
 
 
 async def reload_devices(hass: HomeAssistant, config):
     """Reload devices from ChirpStack server and wait for activity completion."""
     await hass.async_block_till_done()
-    restart_topic = f"application/{config.data.get(CONF_APPLICATION_ID)}/bridge/restart"
-    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_stats()
-    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).on_message(mqtt.Client(mqtt.CallbackAPIVersion.VERSION2), None, message(restart_topic, ""))
+    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).publish(f"application/{config.data.get(CONF_APPLICATION_ID)}/bridge/restart","")
+    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).wait_empty_queue()
     await hass.async_block_till_done()
+    #await asyncio.sleep(0.5)
+
+def count_messages(topic, payload, keep_history=False):
+    """Count posted mqtt messages that matche topic and payload filters."""
+    messages = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published(keep_history=keep_history)
+    count = 0
+    for message in messages:
+        mi_topic = re.search(topic, message[0])
+        if payload:
+            if message[1]:
+                mi_payload = re.search(payload, message[1])
+                if mi_topic and mi_payload:
+                    count += 1
+        else:
+            if mi_topic:
+                count += 1
+
+    return count
+
+def count_messages_with_no_payload(topic, keep_history=False):
+    """Count posted mqtt messages that matche topic and payload filters."""
+    messages = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published(keep_history=keep_history)
+    count = 0
+    for message in messages:
+        mi_topic = re.search(topic, message[0])
+        if mi_topic and not message[1]:
+            count += 1
+    return count

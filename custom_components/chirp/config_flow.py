@@ -1,6 +1,8 @@
 """The ChirpStack LoRaWan integration - base configuration."""
 import hashlib
 import logging
+import time
+import asyncio
 from typing import Any
 
 import voluptuous as vol
@@ -106,6 +108,7 @@ class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 user_input[CONF_APPLICATION_ID] = ""
                 self._grpc_channel = ChirpGrpc(user_input, None)
                 self._tenants_list = self._grpc_channel.get_chirp_tenants()
+                _LOGGER.info("tenants_list %s", self._tenants_list)
                 if self._tenants_list == {}:
                     errors[CONF_API_SERVER] = CONF_CHIRP_NO_TENANTS
                 else:
@@ -247,8 +250,9 @@ class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 entry.data = self._input
                 entry.options = {}
                 entry.unique_id = unique_id
-                mqtt_client = ChirpToHA(entry.data, None, None, self._grpc_channel)
+                mqtt_client = ChirpToHA(entry.data, None, None, self._grpc_channel, connectivity_check_only=True)
                 mqtt_client.close()
+                _LOGGER.debug("ChirpConfigFlow.async_step_configure_mqtt creating configuration entry")
                 return self.async_create_entry(
                     title=DEFAULT_NAME,
                     data=self._input,
@@ -265,7 +269,7 @@ class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     user_input[CONF_MQTT_SERVER],
                     user_input[CONF_MQTT_PORT],
                     str(error),
-                    exc_info=1,
+                    #exc_info=1,
                 )
                 errors[CONF_MQTT_SERVER] = CONF_ERROR_MQTT_CONN_FAILED
 
