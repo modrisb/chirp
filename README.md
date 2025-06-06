@@ -3,13 +3,13 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs) (https://github.com/modrisb/pijups/releases)
 
 
-Chirp as [Home Assistant](https://home-assistant.io) integration component glues together HA MQTT and ChirStack LoraWan server. LoraWan devices information is retrived from ChirpStack gRPC api server and exposed to HA MQTT integration discovery service. Data transferred by/ty LoraWan devices are retained on MQTT server to support HA/integration restart. Detailed configuration information needed for HA is stored as ChirpStack codec extension.
+Chirp as [Home Assistant](https://home-assistant.io) integration component glues together HA MQTT and ChirpStack LoraWan server. LoraWan devices information is retrieved from ChirpStack gRPC api server and exposed to HA MQTT integration discovery service. Data transferred by/to LoraWan devices are retained on MQTT server to support HA/integration restart. Detailed configuration information needed for HA is stored as ChirpStack codec extension.
 
 ## Sensors supported
 * Chirp does not limit devices by type/features, but is limited by codec extension that need to be prepared for each device separately.
 
-## Prerequisite
-HA MQTT integration with MQTT server must be available to Chirp as to Chirpstack server also.<br>
+## Prerequisits
+The Home Assistant MQTT integration with MQTT server needs to be installed. Chirpstack and Chirpstack gateways need to be configured to use the **same MQTT server** as the HA MQTT integration.
 
 ## Manual installation 
 1. Inside the `custom_components` directory, create a new folder called `chirp`.
@@ -19,8 +19,9 @@ HA MQTT integration with MQTT server must be available to Chirp as to Chirpstack
 HACS might be used for installation too - check repository 'Chirp'.
 
 ## Devices Configuration
-Chirp uses ChirpStack device template information for device type details and device specifics (device enabled, device battery details), HA integration details are encoded in ChirpStack device template javascript codec. Codec must be appended by function similar to:
+Chirp uses the Codec function block of ChirpStack device profiles to generate the HA integration details. Information about device type details and device specifics (device enabled, device battery details) is encoded in a Javascript function called `getHaDeviceInfo`. Therefore, the Codec functions block must be extended with a function similar to:
 
+```
 function getHaDeviceInfo() {
   return {
     device: {
@@ -100,8 +101,9 @@ function getHaDeviceInfo() {
     }
   };
 }
+```
 
-Device information is used only for visualization, entities describe sensor details - how they are integrated into HA. value_template defines sensor value extraction rules from device payload and possible conversions (like converting to int/float and applying needed factors). Integration type is needed for MQTT to implement proper processing together with device class definition.
+Device information is used only for visualization, entities describe sensor details - how they are integrated into HA. value_template defines sensor value extraction rules from device payload and possible conversions (like converting to int/float and applying needed factors). Integration type is needed for MQTT to implement proper processing together with device class definition. More information about MQTT discovery fields can be found in the [HA MQTT integration docs](https://www.home-assistant.io/integrations/mqtt).
 
 ## Add-on version
 See https://github.com/modrisb/chirpha for add-on version of this integration.
