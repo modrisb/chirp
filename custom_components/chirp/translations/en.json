@@ -12,20 +12,21 @@
         "step": {
             "configure_mqtt": {
                 "data": {
-                    "discovery_prefix": "HA MQTT discovery prefix",
+                    "discovery_prefix": "HomeAssistant MQTT discovery prefix",
+                    "mqtt_chirpstack_prefix": "ChirpStack MQTT prefix",
                     "mqtt_password": "MQTT user password",
                     "mqtt_port": "MQTT server port",
                     "mqtt_server": "MQTT server",
                     "mqtt_user": "MQTT user name"
                 },
-                "title": "Configure MQTT server used by ChirpStack and HA"
+                "title": "Configure MQTT server used by ChirpStack and HomeAssistant"
             },
             "device_sensors": {
                 "data": {
                     "device_sensors": "Sensor id:name;device_class;state_class;category;units_of_mesurement;conversion_rule[;...]",
                     "device_sensors:batteryLevel:Battery": "Sensor id:name;device_class;state_class;category;units_of_mesurement;conversion_rule[;...]"
                 },
-                "title": "Configure generic LoraWan sensors present on every device"
+                "title": "Configure generic LoRaWAN sensors present on every device"
             },
             "select_application": {
                 "data": {
@@ -37,22 +38,22 @@
                 "data": {
                     "tenant": "Select tenant"
                 },
-                "title": "Select Chirpstack tenant for application selection"
+                "title": "Select ChirpStack tenant for application selection"
             },
             "user": {
                 "data": {
-                    "api_connection_key": "Connection key",
-                    "chirpstack_api_server": "Chirpstack API server",
-                    "server_port": "Server port"
+                    "api_connection_key": "API token",
+                    "chirpstack_api_server": "ChirpStack API server",
+                    "server_port": "Server port (HTTP Only!)"
                 },
-                "title": "Configure Chirpstack API server"
+                "title": "Configure ChirpStack API server"
             }
         }
     },
     "entity": {
         "button": {
             "chirp_reload": {
-                "name": "Reload LoraWan devicesX"
+                "name": "Reload LoRaWAN devicesX"
             }
         },
         "sensor": {

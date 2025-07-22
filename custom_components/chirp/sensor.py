@@ -1,4 +1,4 @@
-"""The Chirpstack LoRaWan integration - sensor implementation."""
+"""The ChirpStack LoRaWAN Integration - sensor implementation."""
 
 import logging
 
