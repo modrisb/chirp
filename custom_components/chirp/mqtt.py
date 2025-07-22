@@ -571,20 +571,21 @@ class ChirpToHA:
                 time_stamp = payload_struct.get("time_stamp")
                 _LOGGER.debug(f"Processing message with time stamp {time_stamp} for topic {message.topic} and payload {payload_struct}")
 
-                if subtopics[-1] == "config" and payload_struct.get("device", {}).get("via_device") is not None:
-                    if (
-                        "via_device" in payload_struct["device"]
-                        and payload_struct["device"]["via_device"]
-                        == self._bridge_indentifier
-                    ):
-                        _LOGGER.info(f"Registration message with time stamp {time_stamp} received for device {subtopics[2]} sensor {subtopics[1]}")
-                        self._old_devices_config_topics.add(message.topic)
+                if subtopics[-1] == "config":
+                    if payload_struct.get("device"):
                         if (
-                            time_stamp and float(time_stamp) >= self._bridge_init_time
+                            "via_device" in payload_struct["device"]
+                            and payload_struct["device"]["via_device"]
+                            == self._bridge_indentifier
                         ):
-                            self._config_topics_published += 1
-                    else:
-                        self._bridge_config_topics_published -= 1
+                            _LOGGER.info(f"Registration message with time stamp {time_stamp} received for device {subtopics[2]} sensor {subtopics[1]}")
+                            self._old_devices_config_topics.add(message.topic)
+                            if (
+                                time_stamp and float(time_stamp) >= self._bridge_init_time
+                            ):
+                                self._config_topics_published += 1
+                        else:
+                            self._bridge_config_topics_published -= 1
                 elif subtopics[-1] == "cur":
                     dev_eui = subtopics[-3]
                     _LOGGER.info("Cached values received for device %s", dev_eui)

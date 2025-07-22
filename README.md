@@ -5,7 +5,7 @@
 Chirp as [Home Assistant](https://home-assistant.io) integration component glues together HA MQTT and ChirpStack LoRaWAN server. LoRaWAN devices information is retrieved from ChirpStack gRPC api server and exposed to HA MQTT integration discovery service. Data transferred by/to LoRaWAN devices are retained on MQTT server to support HA/integration restart. Detailed configuration information needed for HA is stored as ChirpStack codec extension.
 
 ## Sensors supported
-* Chirp does not limit devices by type/features, but is limited by codec extension that need to be prepared for each device separately.
+* Chirp does not limit devices by type/features, but is limited by codec extension that need to be prepared for each device type separately.
 
 ## Prerequisits
 The Home Assistant MQTT integration with MQTT server needs to be installed. Chirpstack and Chirpstack gateways need to be configured to use the **same MQTT server** as the HA MQTT integration.
