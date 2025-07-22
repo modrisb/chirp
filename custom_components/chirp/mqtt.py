@@ -571,7 +571,7 @@ class ChirpToHA:
                 time_stamp = payload_struct.get("time_stamp")
                 _LOGGER.debug(f"Processing message with time stamp {time_stamp} for topic {message.topic} and payload {payload_struct}")
 
-                if subtopics[-1] == "config":
+                if subtopics[-1] == "config" and payload_struct.get("device", {}).get("via_device") is not None:
                     if (
                         "via_device" in payload_struct["device"]
                         and payload_struct["device"]["via_device"]
