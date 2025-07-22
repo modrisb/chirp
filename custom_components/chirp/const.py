@@ -1,4 +1,4 @@
-"""The Chirpstack LoRaWan integration - constant definitions."""
+"""The ChirpStack LoRaWAN Integration - constant definitions."""
 DOMAIN = "chirp"
 GRPCLIENT = "grpclient"
 MQTTCLIENT = "mqttclient"
@@ -28,12 +28,14 @@ CONF_MQTT_PORT = "mqtt_port"
 CONF_MQTT_USER = "mqtt_user"
 CONF_MQTT_PWD = "mqtt_password"
 CONF_MQTT_DISC = "discovery_prefix"
+CONF_MQTT_CHIRPSTACK_PREFIX = "mqtt_chirpstack_prefix"
 
 DEFAULT_MQTT_SERVER = "localhost"
 DEFAULT_MQTT_PORT = 1883
 DEFAULT_MQTT_USER = ""
 DEFAULT_MQTT_PWD = ""
 DEFAULT_MQTT_DISC = "homeassistant"
+DEFAULT_MQTT_CHIRPSTACK_PREFIX = ""
 
 CHIRPSTACK_TENANT = "HA owned"
 CHIRPSTACK_APPLICATION = "HA integration"

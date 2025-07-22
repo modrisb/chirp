@@ -1,4 +1,4 @@
-"""The ChirpStack LoRaWan integration - base configuration."""
+"""The ChirpStack LoRaWAN Integration - base configuration."""
 import hashlib
 import logging
 import time
@@ -31,6 +31,7 @@ from .const import (
     CONF_MQTT_PWD,
     CONF_MQTT_SERVER,
     CONF_MQTT_USER,
+    CONF_MQTT_CHIRPSTACK_PREFIX,
     CONF_OPTIONS_DEBUG_PAYLOAD,
     CONF_OPTIONS_RESTORE_AGE,
     CONF_OPTIONS_START_DELAY,
@@ -40,6 +41,7 @@ from .const import (
     DEFAULT_API_SERVER,
     DEFAULT_APPLICATION,
     DEFAULT_MQTT_DISC,
+    DEFAULT_MQTT_CHIRPSTACK_PREFIX,
     DEFAULT_MQTT_PORT,
     DEFAULT_MQTT_PWD,
     DEFAULT_MQTT_SERVER,
@@ -70,6 +72,7 @@ def generate_unique_id(configuration):
                 CONF_MQTT_SERVER,
                 CONF_MQTT_PORT,
                 CONF_MQTT_DISC,
+                CONF_MQTT_CHIRPSTACK_PREFIX,
             )
         ]
     )
@@ -78,7 +81,7 @@ def generate_unique_id(configuration):
 
 
 class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Chirpstack LoRaWan configuration flow."""
+    """ChirpStack LoRaWAN configuration flow."""
 
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLL
@@ -307,6 +310,12 @@ class ChirpConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         if not user_input
                         else user_input[CONF_MQTT_DISC],
                     ): vol.All(str,vol.Length(min=1)),
+                    vol.Optional(
+                        CONF_MQTT_CHIRPSTACK_PREFIX,
+                        default=DEFAULT_MQTT_CHIRPSTACK_PREFIX
+                        if not user_input
+                        else user_input.get(CONF_MQTT_CHIRPSTACK_PREFIX, DEFAULT_MQTT_CHIRPSTACK_PREFIX),
+                    ): str,
                 }
             ),
             errors=errors,

@@ -1,4 +1,4 @@
-"""The Chirpstack LoRaWan integration - grpc interface to ChirpStack server."""
+"""The ChirpStack LoRaWAN Integration - grpc interface to ChirpStack server."""
 from __future__ import annotations
 
 import json

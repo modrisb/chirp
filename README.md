@@ -1,9 +1,8 @@
-# Chirp - ChirpStack LoraWan Integration
+# Chirp - ChirpStack to HomeAssistant MQTT Integration
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs) (https://github.com/modrisb/pijups/releases)
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 
-
-Chirp as [Home Assistant](https://home-assistant.io) integration component glues together HA MQTT and ChirpStack LoraWan server. LoraWan devices information is retrieved from ChirpStack gRPC api server and exposed to HA MQTT integration discovery service. Data transferred by/to LoraWan devices are retained on MQTT server to support HA/integration restart. Detailed configuration information needed for HA is stored as ChirpStack codec extension.
+Chirp as [Home Assistant](https://home-assistant.io) integration component glues together HA MQTT and ChirpStack LoRaWAN server. LoRaWAN devices information is retrieved from ChirpStack gRPC api server and exposed to HA MQTT integration discovery service. Data transferred by/to LoRaWAN devices are retained on MQTT server to support HA/integration restart. Detailed configuration information needed for HA is stored as ChirpStack codec extension.
 
 ## Sensors supported
 * Chirp does not limit devices by type/features, but is limited by codec extension that need to be prepared for each device separately.

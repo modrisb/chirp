@@ -1,4 +1,4 @@
-"""The Chirpstack LoRaWan integration - setup."""
+"""The ChirpStack LoRaWAN Integration - setup."""
 from __future__ import annotations
 
 import logging

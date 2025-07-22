@@ -19,6 +19,7 @@ from homeassistant.components.chirp.const import (
     CONF_MQTT_PWD,
     CONF_MQTT_SERVER,
     CONF_MQTT_USER,
+    CONF_MQTT_CHIRPSTACK_PREFIX,
     CONF_OPTIONS_DEBUG_PAYLOAD,
     CONF_OPTIONS_RESTORE_AGE,
     CONF_OPTIONS_START_DELAY,
@@ -256,6 +257,7 @@ async def test_setup_with_auto_tenant_auto_apps_mqtt_fail(hass: HomeAssistant) -
             CONF_MQTT_USER: "user",
             CONF_MQTT_PWD: "pwd",
             CONF_MQTT_DISC: "ha",
+            CONF_MQTT_CHIRPSTACK_PREFIX: "",
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.FORM
@@ -293,6 +295,7 @@ async def test_setup_with_auto_tenant_auto_apps_mqtt(hass: HomeAssistant) -> Non
             CONF_MQTT_USER: "user",
             CONF_MQTT_PWD: "pwd",
             CONF_MQTT_DISC: "ha",
+            CONF_MQTT_CHIRPSTACK_PREFIX: "",
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.CREATE_ENTRY
@@ -308,6 +311,7 @@ async def test_setup_with_auto_tenant_auto_apps_mqtt(hass: HomeAssistant) -> Non
         CONF_MQTT_USER: "user",
         CONF_MQTT_PWD: "pwd",
         CONF_MQTT_DISC: "ha",
+        CONF_MQTT_CHIRPSTACK_PREFIX: "",
     }
     assert result["options"] == {
         CONF_OPTIONS_START_DELAY: DEFAULT_OPTIONS_START_DELAY,
@@ -335,6 +339,7 @@ async def test_setup_with_duplicate(hass: HomeAssistant) -> None:
         CONF_MQTT_USER: "user",
         CONF_MQTT_PWD: "pwd",
         CONF_MQTT_DISC: "ha",
+        CONF_MQTT_CHIRPSTACK_PREFIX: "",
     }
     conf_options = {
         CONF_OPTIONS_START_DELAY: DEFAULT_OPTIONS_START_DELAY,
@@ -376,6 +381,7 @@ async def test_setup_with_duplicate(hass: HomeAssistant) -> None:
             CONF_MQTT_USER: "user",
             CONF_MQTT_PWD: "pwd",
             CONF_MQTT_DISC: "ha",
+            CONF_MQTT_CHIRPSTACK_PREFIX: "",
         },
     )
     assert result["type"] == data_entry_flow.FlowResultType.ABORT
