@@ -105,8 +105,6 @@ class ChirpToHA:
         self._dev_count = 0
         self._last_update = None
         self._discovery_prefix = self._config.get(CONF_MQTT_DISC)
-        if not self._discovery_prefix.endswith("/"):
-            self._discovery_prefix += "/"
         self._chirpstack_prefix = self._config.get(CONF_MQTT_CHIRPSTACK_PREFIX)
         if self._chirpstack_prefix and not self._chirpstack_prefix.endswith("/"):
             self._chirpstack_prefix += "/"
@@ -149,7 +147,7 @@ class ChirpToHA:
         self._bridge_restart_topic = (
             f"{self._chirpstack_prefix}application/{self._application_id}/bridge/restart"
         )
-        self._ha_status = f"{self._discovery_prefix}status"
+        self._ha_status = f"{self._discovery_prefix}/status"
         self._sub_cur_topic = f"{self._chirpstack_prefix}application/{self._application_id}/device/+/event/cur"
         _LOGGER.info(
             "Connected to MQTT at %s:%s as %s",
@@ -561,7 +559,7 @@ class ChirpToHA:
                 self.subscribe(
                     f"{self._chirpstack_prefix}application/{self._application_id}/device/+/event/up"
                 )
-                self.subscribe(f"{self._discovery_prefix}+/+/+/config")
+                self.subscribe(f"{self._discovery_prefix}/+/+/+/config")
                 self.start_bridge()
                 self.reload_devices()
         else:
@@ -569,7 +567,7 @@ class ChirpToHA:
             payload_struct = json.loads(payload) if len(payload) > 2 else None
             if payload_struct:
                 time_stamp = payload_struct.get("time_stamp")
-                _LOGGER.debug(f"Processing message with time stamp {time_stamp} for topic {message.topic} and payload {payload_struct}")
+                _LOGGER.detail(f"Processing message with time stamp {time_stamp} for topic {message.topic} and payload {payload_struct}")
 
                 if subtopics[-1] == "config":
                     if payload_struct.get("device"):
@@ -752,13 +750,13 @@ class ChirpToHA:
                 )
         else:
             mqtt_integration = sensor.get("integration")
-        return f"{self._discovery_prefix}{mqtt_integration}/{dev_conf['dev_eui']}/{dev_id}/config"
+        return f"{self._discovery_prefix}/{mqtt_integration}/{dev_conf['dev_eui']}/{dev_id}/config"
 
     def get_availability_element(self, dev_id, sensor, device, dev_conf):
         if self._per_device_online:
             availability_elements = self._availability_element.copy()
             for availability_element in availability_elements:
-                availability_element["topic"] = f"{self._chirpstack_prefix}s/{self._application_id}/device/{dev_conf['dev_eui']}/event/cur"
+                availability_element["topic"] = f"{self._chirpstack_prefix}application/{self._application_id}/device/{dev_conf['dev_eui']}/event/cur"
             return availability_elements
         else:
             return self._availability_element
@@ -824,7 +822,7 @@ class ChirpToHA:
                 discovery_config[key] = status_topic
             if "{dev_eui}" in value:
                 discovery_config[key] = value.replace( "{dev_eui}", dev_conf["dev_eui"] )
-        if not discovery_config.get("enabled_by_default"):
+        if discovery_config.get("enabled_by_default")==None:
             discovery_config["enabled_by_default"] = True
         if self._bridge_init_time:
             discovery_config["time_stamp"] = self._bridge_init_time
