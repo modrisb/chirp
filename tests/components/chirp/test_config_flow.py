@@ -1,4 +1,4 @@
-"""Test the ChirpStack LoRaWan integration config (and config options) flow."""
+"""Test the ChirpStack LoRaWAN integration config (and config options) flow."""
 from unittest import mock
 
 from homeassistant import config_entries, data_entry_flow

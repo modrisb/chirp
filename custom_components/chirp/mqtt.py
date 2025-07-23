@@ -108,7 +108,7 @@ class ChirpToHA:
         if not self._discovery_prefix.endswith("/"):
             self._discovery_prefix += "/"
         self._chirpstack_prefix = self._config.get(CONF_MQTT_CHIRPSTACK_PREFIX)
-        if not self._chirpstack_prefix.endswith("/"):
+        if self._chirpstack_prefix and not self._chirpstack_prefix.endswith("/"):
             self._chirpstack_prefix += "/"
 
         self._client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
@@ -758,7 +758,7 @@ class ChirpToHA:
         if self._per_device_online:
             availability_elements = self._availability_element.copy()
             for availability_element in availability_elements:
-                availability_element["topic"] = f"{self._chirpstack_prefix}application/{self._application_id}/device/{dev_conf['dev_eui']}/event/cur"
+                availability_element["topic"] = f"{self._chirpstack_prefix}s/{self._application_id}/device/{dev_conf['dev_eui']}/event/cur"
             return availability_elements
         else:
             return self._availability_element

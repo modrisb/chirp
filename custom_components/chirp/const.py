@@ -54,12 +54,10 @@ BRIDGE_NAME = "Chirp2MQTT Bridge"
 BRIDGE = "Bridge"
 BRIDGE_STATE_ID = "state"
 BRIDGE_ENTITY_NAME = "Connection state"
-INTEGRATION_DEV_NAME = "ChirpStack LoraWan Integration"
+INTEGRATION_DEV_NAME = "ChirpStack LoraWAN Integration"
 CONNECTIVITY_DEVICE_CLASS = "connectivity"
 BRIDGE_RESTART_ID = "restart"
 BRIDGE_RESTART_NAME = "Reload devices"
-
-BRIDGE_CONF_COUNT = 2
 
 STATISTICS_SENSORS = "chirp_sensors"
 STATISTICS_DEVICES = "chirp_devices"
@@ -71,16 +69,6 @@ CONF_OPTIONS_EXPIRE_AFTER = "options_add_expire_after"
 DEFAULT_OPTIONS_LOG_LEVEL = "info"
 DEFAULT_OPTIONS_EXPIRE_AFTER = False
 DEFAULT_OPTIONS_ONLINE_PER_DEVICE = 0
-MQTT_ORIGIN = "ChirpLora"
-BRIDGE_VENDOR = "Chirp2MQTT"
-BRIDGE_NAME = "Chirp2MQTT Bridge"
-BRIDGE = "Bridge"
-BRIDGE_STATE_ID = "state"
-BRIDGE_ENTITY_NAME = "Connection state"
-INTEGRATION_DEV_NAME = "ChirpStack LoraWan Integration"
-CONNECTIVITY_DEVICE_CLASS = "connectivity"
-BRIDGE_RESTART_ID = "restart"
-BRIDGE_RESTART_NAME = "Reload devices"
 BRIDGE_LOGLEVEL_ID = "log_level"
 BRIDGE_LOGLEVEL_NAME = "Log level"
 

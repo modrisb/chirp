@@ -62,18 +62,20 @@ CONFIG_OPTIONS = {
 @mock.patch("homeassistant.components.chirp.grpc.grpc", new=grpc)
 @mock.patch("homeassistant.components.chirp.mqtt.mqtt", new=mqtt)
 async def chirp_setup_and_run_test(
-    hass: HomeAssistant, expected_entry_setup, run_test_case, debug_payload=False
+    hass: HomeAssistant, expected_entry_setup, run_test_case, debug_payload=False, config_data=None
 ):
     """Execute test case in standard configuration environment with grpc/mqtt mocks."""
 
     set_size()
     config_options = CONFIG_OPTIONS.copy()
     config_options[CONF_OPTIONS_DEBUG_PAYLOAD] = debug_payload
-    unique_id = generate_unique_id(CONFIG_DATA)
+    _config_data = CONFIG_DATA.copy()
+    if config_data: _config_data |= config_data
+    unique_id = generate_unique_id(_config_data)
     entry = MockConfigEntry(
         domain=DOMAIN,
         unique_id=unique_id,
-        data=CONFIG_DATA,
+        data=_config_data,
         options=config_options,
     )
 
