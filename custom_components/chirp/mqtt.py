@@ -47,6 +47,10 @@ from .const import (
     DEFAULT_OPTIONS_START_DELAY,
     DEFAULT_OPTIONS_RESTORE_AGE,
 )
+INTEGRATION_BINARY_SENSOR = "binary_sensor"
+INTEGRATION_BUTTON = "button"
+INTEGRATION_SELECT = "select"
+
 from .grpc import ChirpGrpc
 
 _LOGGER = logging.getLogger(__name__)
@@ -252,12 +256,12 @@ class ChirpToHA:
         bridge_publish_data = self.get_conf_data(
             BRIDGE_STATE_ID,
             {  #   'entities':
-                "integration": "binary_sensor",
+                "integration": INTEGRATION_BINARY_SENSOR,
                 "entity_conf": {
                     "state_topic": self._bridge_state_topic,
                     "value_template": "{{ value_json.state }}",
-                    "object_id": to_lower_case_no_blanks(
-                        f"{BRIDGE_VENDOR} {BRIDGE} {BRIDGE_ENTITY_NAME}"
+                    "default_entity_id": to_lower_case_no_blanks(
+                        f"{INTEGRATION_BINARY_SENSOR}.{BRIDGE_VENDOR} {BRIDGE} {BRIDGE_ENTITY_NAME}"
                     ),
                     "unique_id": to_lower_case_no_blanks(
                         f"{BRIDGE} {self._unique_id} {BRIDGE_ENTITY_NAME} {BRIDGE_VENDOR}"
@@ -293,13 +297,13 @@ class ChirpToHA:
         bridge_refresh_data = self.get_conf_data(
             BRIDGE_RESTART_ID,
             {  #   'entities':
-                "integration": "button",
+                "integration": INTEGRATION_BUTTON,
                 "entity_conf": {
                     "availability_mode": "all",
                     "state_topic": "{None}",
                     "command_topic": self._bridge_restart_topic,
-                    "object_id": to_lower_case_no_blanks(
-                        f"{BRIDGE_VENDOR} {BRIDGE} {BRIDGE_RESTART_ID}"
+                    "default_entity_id": to_lower_case_no_blanks(
+                        f"{INTEGRATION_BUTTON}.{BRIDGE_VENDOR} {BRIDGE} {BRIDGE_RESTART_ID}"
                     ),
                     "unique_id": to_lower_case_no_blanks(
                         f"{BRIDGE} {self._unique_id} {BRIDGE_RESTART_NAME} {BRIDGE_VENDOR}"
@@ -332,15 +336,15 @@ class ChirpToHA:
         bridge_log_data = self.get_conf_data(
             BRIDGE_LOGLEVEL_ID,
             {  #   'entities':
-                "integration": "select",
+                "integration": INTEGRATION_SELECT,
                 "entity_conf": {
                     "availability_mode": "all",
                     "state_topic": self._bridge_state_topic,
                     "value_template": '{{ value_json.log_level | lower }}',
                     "command_topic": self._bridge_state_topic,
                     "command_template": '{"state": "online", "log_level": "{{ value }}"}',
-                    "object_id": to_lower_case_no_blanks(
-                        f"{BRIDGE_VENDOR} {BRIDGE} {BRIDGE_LOGLEVEL_ID}"
+                    "default_entity_id": to_lower_case_no_blanks(
+                        f"{INTEGRATION_SELECT}.{BRIDGE_VENDOR} {BRIDGE} {BRIDGE_LOGLEVEL_ID}"
                     ),
                     "unique_id": to_lower_case_no_blanks(
                         f"{BRIDGE} {self._unique_id} {BRIDGE_LOGLEVEL_NAME} {BRIDGE_VENDOR}"
@@ -801,8 +805,8 @@ class ChirpToHA:
             discovery_config["unique_id"] = to_lower_case_no_blanks(
                 BRIDGE_VENDOR + "_" + dev_conf["dev_eui"] + "_" + dev_id
             )
-        if not discovery_config.get("object_id"):
-            discovery_config["object_id"] = to_lower_case_no_blanks(
+        if not discovery_config.get("default_entity_id"):
+            discovery_config["default_entity_id"] = to_lower_case_no_blanks(
                 dev_conf["dev_eui"] + "_" + dev_id
             )
         if self._expire_after and discovery_config.get("uplink_interval") and not discovery_config.get("expire_after"):

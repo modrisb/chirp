@@ -10,6 +10,7 @@ import re
 from chirpstack_api import api
 import grpc
 
+from .getha import generate_getHaDeviceInfo
 from .const import CONF_API_PORT, CONF_API_SERVER, CONF_APPLICATION_ID, CHIRPSTACK_TENANT, CHIRPSTACK_APPLICATION, ERRMSG_CODEC_ERROR
 from .const import ERRMSG_DEVICE_IGNORED, WARMSG_APPID_WRONG, CHIRPSTACK_API_KEY_NAME, CONF_API_KEY
 
@@ -17,6 +18,7 @@ _LOGGER = logging.getLogger(__name__)
 
 class ChirpGrpc:
     """Chirp2MQTT grpc interface support."""
+    """ChirpStack api details @ https://github.com/chirpstack/chirpstac k/tree/master/api/proto/api"""
 
     def __init__(self, config, version) -> None:
         """Open connection to ChirpStack api server."""
@@ -132,6 +134,12 @@ class ChirpGrpc:
         listDevicesReq.id = device_profile_id
         return profile.Get(listDevicesReq, metadata=self._auth_token)
 
+    def update_chirp_device_profile(self, device_profile):
+        """Update device profile."""
+        profile = api.DeviceProfileServiceStub(self._channel)
+        updateDevicesReq = api.UpdateDeviceProfileRequest(device_profile = device_profile)
+        return profile.Update(updateDevicesReq, metadata=self._auth_token)
+
     def isDeviceDisbled(self, dev_eui):
         """Check if device with dev_eui is enabled by reading device details from api server."""
         device = self.get_chirp_device(dev_eui)
@@ -154,6 +162,21 @@ class ChirpGrpc:
             codec_json = None
             try:
                 mi_start = re.search(r"function\s+getHaDeviceInfo", profile.device_profile.payload_codec_script)
+                if not mi_start:
+                    _LOGGER.warning(
+                        "Profile %s discovery codec script not found, generating one, will use manufacturer name '%s', device name '%s', baterry '%s'",
+                        profile.device_profile.name,
+                        profile.device_profile.description,
+                        profile.device_profile.name,
+                        not device.device_status.external_power_source
+                    )
+                    codec_code = generate_getHaDeviceInfo(profile.device_profile.payload_codec_script,
+                                                          profile.device_profile.description,
+                                                          profile.device_profile.name,
+                                                          not device.device_status.external_power_source)
+                    profile.device_profile.payload_codec_script += codec_code
+                    self.update_chirp_device_profile(profile.device_profile)
+                    mi_start = re.search(r"function\s+getHaDeviceInfo", profile.device_profile.payload_codec_script)
                 if mi_start:
                     i_start = mi_start.start()
                     codec_code = profile.device_profile.payload_codec_script[i_start:]
