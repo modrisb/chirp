@@ -731,10 +731,10 @@ class ChirpToHA:
                 )
         return filtered
 
-    def get_discovery_topic(self, dev_id, sensor, device, dev_conf):
+    def get_integration(self, dev_id, sensor, device, dev_conf):
         """Prepare sensor discovery topic based on integration type/device class."""
-        if not sensor.get("integration"):
-            mqtt_integration = None
+        mqtt_integration = sensor.get("integration")
+        if not mqtt_integration:
             device_class = sensor["entity_conf"].get("device_class")
             if device_class and self._classes:
                 for integration in self._classes["integrations"]:
@@ -756,9 +756,7 @@ class ChirpToHA:
                     dev_conf["dev_eui"],
                     dev_id,
                 )
-        else:
-            mqtt_integration = sensor.get("integration")
-        return f"{self._discovery_prefix}/{mqtt_integration}/{dev_conf['dev_eui']}/{dev_id}/config"
+        return mqtt_integration
 
     def get_availability_element(self, dev_id, sensor, device, dev_conf):
         if self._per_device_online:
@@ -771,7 +769,8 @@ class ChirpToHA:
 
     def get_conf_data(self, dev_id, sensor, device, dev_conf):
         """Prepare discovery payload."""
-        discovery_topic = self.get_discovery_topic(dev_id, sensor, device, dev_conf)
+        mqtt_integration = self.get_integration(dev_id, sensor, device, dev_conf)
+        discovery_topic = f"{self._discovery_prefix}/{mqtt_integration}/{dev_conf['dev_eui']}/{dev_id}/config"
         status_topic = f"{self._chirpstack_prefix}application/{self._application_id}/device/{dev_conf['dev_eui']}/event/{sensor.get('data_event') if sensor.get('data_event') else 'up'}"
         comand_topic = f"{self._chirpstack_prefix}application/{self._application_id}/device/{dev_conf['dev_eui']}/command/down"
         discovery_config = sensor["entity_conf"].copy()
@@ -807,7 +806,7 @@ class ChirpToHA:
             )
         if not discovery_config.get("default_entity_id"):
             discovery_config["default_entity_id"] = to_lower_case_no_blanks(
-                dev_conf["dev_eui"] + "_" + dev_id
+                mqtt_integration + "." + dev_conf["dev_eui"] + "_" + dev_id
             )
         if self._expire_after and discovery_config.get("uplink_interval") and not discovery_config.get("expire_after"):
             discovery_config["expire_after"] = discovery_config["uplink_interval"]
