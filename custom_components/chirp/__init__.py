@@ -1,7 +1,9 @@
 """The ChirpStack LoRaWAN Integration - setup."""
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
@@ -18,6 +20,7 @@ __version__ = "1.1.11"
 DETAILED_LEVEL_NUM = 5
 logging.addLevelName(DETAILED_LEVEL_NUM, "DETAIL")
 def detail(self, message, *args, **kws):
+    """Set up 'detail' logging level."""
     if self.isEnabledFor(DETAILED_LEVEL_NUM):
         self._log(DETAILED_LEVEL_NUM, message, args, **kws)
 logging.Logger.detail = detail
@@ -27,9 +30,8 @@ logging.Logger.detail = detail
 #  eg <cover.py> and <sensor.py>
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up PiJups from a config entry."""
+    """Set up Chirp from a config entry."""
     # Store an instance of the "connecting" class that does the work of speaking
     # with your actual devices.
     _LOGGER.debug(
@@ -38,7 +40,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     grpc_client = ChirpGrpc(entry.data, __version__)
-    mqtt_client = ChirpToHA(entry.data, __version__, None, grpc_client)
+    try:
+        module_dir = Path(globals().get("__file__", "./_")).absolute().parent
+        with Path.open(str(module_dir)+'/classes.json') as file:
+            classes = json.load(file)
+    except Exception:  # noqa: BLE001
+        classes = None
+
+    mqtt_client = ChirpToHA(entry.data, __version__, classes, grpc_client)
 
     hass.data[DOMAIN][entry.entry_id] = {
         GRPCLIENT: grpc_client,
