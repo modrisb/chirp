@@ -1,12 +1,12 @@
 {
-    "domain": "chirp",
-    "name": "ChirpStack LoRaWAN Integration",
-    "documentation": "https://github.com/modrisb/chirp/",
-    "issue_tracker": "https://github.com/modrisb/chirp/issues",
-    "requirements": ["paho-mqtt~=2.1", "chirpstack-api~=4.16", "dukpy~=0.5"],
-    "version": "1.1.28",
-    "dependencies": ["mqtt"],
-    "codeowners": ["@modrisb"],
-    "config_flow": true,
-    "iot_class": "local_polling"
+  "domain": "chirp",
+  "name": "ChirpStack LoRaWAN Integration",
+  "codeowners": ["@modrisb"],
+  "config_flow": true,
+  "dependencies": ["mqtt"],
+  "documentation": "https://github.com/modrisb/chirp/",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/modrisb/chirp/issues",
+  "requirements": ["paho-mqtt==2.1.0", "chirpstack-api==4.17.0", "dukpy==0.5.1"],
+  "version": "1.2.0"
 }

@@ -1,0 +1,12 @@
+{
+  "entity": {
+    "sensor": {
+      "chirp_devices": {
+        "default": "mdi:devices"
+      },
+      "chirp_sensors": {
+        "default": "mdi:badge-account-horizontal-outline"
+      }
+    }
+  }
+}

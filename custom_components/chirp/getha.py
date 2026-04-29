@@ -1,3 +1,7 @@
+"""The ChirpStack LoRaWAN Integration - default getHaDeviceInfo preparation."""
+
+import logging
+
 UPLINK_FUNCTION_NAME = "decodeUplink"
 DATA_PROPERTY_NAME = "data"
 ARRAY_FUNCS = ["push", "pull", "shift", "pop"]
@@ -45,18 +49,20 @@ HA_TAIL = """            rssi:{
 }
 """
 
-import time
-import logging
-
 _LOGGER = logging.getLogger(__name__)
 
 
 def generate_getHaDeviceInfo(codec, manufacturer, device, hasBaterry):
-    #sensors = getHAFromCodec(codec)
+    """Default getHaDeviceInfo preparation."""
+    # sensors = getHAFromCodec(codec)
     sensors = []
-    haBody = HA_HEAD.replace("${manufacturer}", manufacturer if manufacturer else DEFAULT_MANUFACTURER).replace("${model}", device)
+    haBody = HA_HEAD.replace(
+        "${manufacturer}", manufacturer or DEFAULT_MANUFACTURER
+    ).replace("${model}", device)
     for sensor in sensors:
-        haBody += HA_SENSOR.replace("${sensor_name}", sensor.replace('.', '_')).replace("${sensor}", sensor)
+        haBody += HA_SENSOR.replace("${sensor_name}", sensor.replace(".", "_")).replace(
+            "${sensor}", sensor
+        )
     if hasBaterry:
         haBody += HA_BATTERY
     haBody += HA_TAIL
