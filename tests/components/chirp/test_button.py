@@ -1,0 +1,70 @@
+"""Test the ChirpStack LoRaWAN integration reload devices button press."""
+
+import asyncio
+import logging
+import pathlib
+import time
+from unittest import mock
+
+import pytest
+
+from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
+from homeassistant.components.chirp.__init__ import DETAILED_LEVEL_NUM
+from homeassistant.components.chirp.const import (
+    BRIDGE_CONF_COUNT,
+    CONF_MQTT_CHIRPSTACK_PREFIX,
+    DOMAIN,
+    INTEGRATION_DEV_NAME,
+    MQTTCLIENT,
+)
+from homeassistant.components.chirp.mqtt import ChirpToHA
+from homeassistant.config_entries import ConfigEntryState
+from homeassistant.const import ATTR_ENTITY_ID, Platform
+from homeassistant.core import HomeAssistant
+
+from .patches import api, get_size, grpc, mqtt, set_size
+
+from tests.components.chirp import common
+
+
+@pytest.fixture(autouse=True)
+def cleanup():
+    """Reset mock settings and close mqtt connection if needed."""
+    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_mock()    #   default mock settings
+    yield
+    # teardown - close mqtt connection if needed
+    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_mock()    #   default mock settings
+
+async def test_devices_reload_button_press(hass: HomeAssistant, caplog):
+    """Test if button press re-loads devices."""
+
+    async def run_test_devices_reload_button_press(hass: HomeAssistant, entry):
+        assert entry.state is ConfigEntryState.LOADED
+        mqtt_client: ChirpToHA = hass.data[DOMAIN][entry.entry_id][MQTTCLIENT]
+        entity_ids = hass.states.async_entity_ids()#(BUTTON_DOMAIN)
+        initial_last_update = mqtt_client.last_update
+        initial_dev_count = mqtt_client.dev_count
+        initial_dev_sensor_count = mqtt_client.dev_sensor_count
+        await asyncio.sleep(0.1)
+        set_size(devices=get_size("devices")+1)
+        for entity_id in entity_ids:
+            await hass.services.async_call(
+                BUTTON_DOMAIN,
+                SERVICE_PRESS,
+                {ATTR_ENTITY_ID: entity_id},
+                blocking=True,
+            )
+        after_reload_last_update = mqtt_client.last_update
+        after_reload_dev_count = mqtt_client.dev_count
+        after_reload_dev_sensor_count = mqtt_client.dev_sensor_count
+
+        await hass.config_entries.async_unload(entry.entry_id)
+
+        assert initial_last_update < after_reload_last_update
+        assert initial_dev_count < after_reload_dev_count
+        assert initial_dev_sensor_count < after_reload_dev_sensor_count
+
+        assert entry.state is ConfigEntryState.NOT_LOADED
+
+    await common.chirp_setup_and_run_test(hass, True, run_test_devices_reload_button_press)
+    assert "Devices reloaded, " in caplog.text
