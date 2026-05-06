@@ -1,52 +1,49 @@
 """Test the ChirpStack LoRaWAN integration reload devices button press."""
 
 import asyncio
-import logging
-import pathlib
-import time
-from unittest import mock
 
+from pychirpha.const import DOMAIN, MQTTCLIENT
+from pychirpha.mqtt import ChirpToHA
 import pytest
 
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
-from homeassistant.components.chirp.__init__ import DETAILED_LEVEL_NUM
-from homeassistant.components.chirp.const import (
-    BRIDGE_CONF_COUNT,
-    CONF_MQTT_CHIRPSTACK_PREFIX,
-    DOMAIN,
-    INTEGRATION_DEV_NAME,
-    MQTTCLIENT,
-)
-from homeassistant.components.chirp.mqtt import ChirpToHA
 from homeassistant.config_entries import ConfigEntryState
-from homeassistant.const import ATTR_ENTITY_ID, Platform
+from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
 
-from .patches import api, get_size, grpc, mqtt, set_size
-
-from tests.components.chirp import common
+from . import common
+from .patches import get_size, mqtt, set_size
 
 
 @pytest.fixture(autouse=True)
 def cleanup():
     """Reset mock settings and close mqtt connection if needed."""
-    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_mock()    #   default mock settings
+    mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION2
+    ).reset_mock()  #   default mock settings
     yield
     # teardown - close mqtt connection if needed
-    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_mock()    #   default mock settings
+    mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION2
+    ).reset_mock()  #   default mock settings
 
-async def test_devices_reload_button_press(hass: HomeAssistant, caplog):
+
+async def test_devices_reload_button_press(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
     """Test if button press re-loads devices."""
 
     async def run_test_devices_reload_button_press(hass: HomeAssistant, entry):
         assert entry.state is ConfigEntryState.LOADED
-        mqtt_client: ChirpToHA = hass.data[DOMAIN][entry.entry_id][MQTTCLIENT]
-        entity_ids = hass.states.async_entity_ids()#(BUTTON_DOMAIN)
+        mqtt_client: ChirpToHA = entry.runtime_data[MQTTCLIENT]
+        entity_ids = hass.states.async_entity_ids(BUTTON_DOMAIN)  # (BUTTON_DOMAIN)
         initial_last_update = mqtt_client.last_update
         initial_dev_count = mqtt_client.dev_count
         initial_dev_sensor_count = mqtt_client.dev_sensor_count
-        await asyncio.sleep(0.1)
-        set_size(devices=get_size("devices")+1)
+        mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).wait_empty_queue()
+        await hass.async_block_till_done()
+        await asyncio.sleep(0.01)
+        set_size(devices=get_size("devices") + 1)
         for entity_id in entity_ids:
             await hass.services.async_call(
                 BUTTON_DOMAIN,
@@ -66,5 +63,7 @@ async def test_devices_reload_button_press(hass: HomeAssistant, caplog):
 
         assert entry.state is ConfigEntryState.NOT_LOADED
 
-    await common.chirp_setup_and_run_test(hass, True, run_test_devices_reload_button_press)
+    await common.chirp_setup_and_run_test(
+        hass, True, run_test_devices_reload_button_press
+    )
     assert "Devices reloaded, " in caplog.text

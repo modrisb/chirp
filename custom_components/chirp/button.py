@@ -2,6 +2,15 @@
 
 import logging
 
+from pychirpha.const import (
+    BRIDGE_NAME,
+    BRIDGE_VENDOR,
+    DOMAIN,
+    INTEGRATION_DEV_NAME,
+    MQTTCLIENT,
+    RELOAD_BUTTON,
+)
+
 from homeassistant.components.button import (
     ButtonDeviceClass,
     ButtonEntity,
@@ -13,20 +22,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import (
-    BRIDGE_NAME,
-    BRIDGE_VENDOR,
-    DOMAIN,
-    INTEGRATION_DEV_NAME,
-    MQTTCLIENT,
-    RELOAD_BUTTON,
-)
-
 _LOGGER = logging.getLogger(__name__)
 
 BUTTONS: tuple[ButtonEntityDescription, ...] = (
     ButtonEntityDescription(
-        # name=RELOAD_BUTTON,
         key=RELOAD_BUTTON,
         translation_key=RELOAD_BUTTON,
         device_class=ButtonDeviceClass.RESTART,

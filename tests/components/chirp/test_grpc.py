@@ -5,20 +5,24 @@ import pytest
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .patches import get_size, message, mqtt, set_size
-
-from tests.components.chirp import common
+from . import common
+from .patches import get_size, mqtt, set_size
 
 
 @pytest.fixture(autouse=True)
 def cleanup():
     """Reset mock settings and close mqtt connection if needed."""
-    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_mock()    #   default mock settings
+    mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION2
+    ).reset_mock()  #   default mock settings
     yield
     # teardown - close mqtt connection if needed
-    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_mock()    #   default mock settings
+    mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION2
+    ).reset_mock()  #   default mock settings
 
-async def test_faulty_codec(hass: HomeAssistant):
+
+async def test_faulty_codec(hass: HomeAssistant) -> None:
     """Test faulty codec - devices are not installed."""
 
     async def run_test_faulty_codec(hass: HomeAssistant, config: ConfigEntry):
@@ -36,7 +40,7 @@ async def test_faulty_codec(hass: HomeAssistant):
     await common.chirp_setup_and_run_test(hass, True, run_test_faulty_codec)
 
 
-async def test_codec_with_single_q_strings(hass: HomeAssistant):
+async def test_codec_with_single_q_strings(hass: HomeAssistant) -> None:
     """Test codec with ' as string encloser - devices to be installed."""
 
     async def run_test_codec_with_single_q_strings(
@@ -53,7 +57,7 @@ async def test_codec_with_single_q_strings(hass: HomeAssistant):
     )
 
 
-async def test_with_devices_disabled(hass: HomeAssistant):
+async def test_with_devices_disabled(hass: HomeAssistant) -> None:
     """Test disabled devices are listed - no devices to be installed."""
 
     async def run_test_with_devices_disabled(hass: HomeAssistant, config: ConfigEntry):
@@ -65,15 +69,22 @@ async def test_with_devices_disabled(hass: HomeAssistant):
     await common.chirp_setup_and_run_test(hass, True, run_test_with_devices_disabled)
 
 
-async def test_codec_prologue_issues(hass: HomeAssistant, caplog):
+async def test_codec_prologue_issues(
+    hass: HomeAssistant, caplog: pytest.LogCaptureFixture
+) -> None:
     """Test codec with issues in prologue, no ddevices to be installed."""
 
     async def run_test_codec_prologue_issues(hass: HomeAssistant, config: ConfigEntry):
         await hass.async_block_till_done()
         set_size(devices=1, codec=11)  # wrong function name (missing)
         await common.reload_devices(hass, config)
-        assert "discovery codec script not found, generating one, will use manufacturer name" in caplog.text
-        assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 2  # sensor count in generated codec is 2
+        assert (
+            "discovery codec script not found, generating one, will use manufacturer name"
+            in caplog.text
+        )
+        assert (
+            mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 2
+        )  # sensor count in generated codec is 2
         set_size(devices=1, codec=12)  # return statement missing
         await common.reload_devices(hass, config)
         assert mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_sensors == 0
@@ -86,7 +97,7 @@ async def test_codec_prologue_issues(hass: HomeAssistant, caplog):
     await common.chirp_setup_and_run_test(hass, True, run_test_codec_prologue_issues)
 
 
-async def test_codec_with_comment(hass: HomeAssistant):
+async def test_codec_with_comment(hass: HomeAssistant) -> None:
     """Test codec with comments in body."""
 
     async def run_test_codec_with_comment(hass: HomeAssistant, config: ConfigEntry):

@@ -2,36 +2,18 @@
 
 from __future__ import annotations
 
-import json
 import logging
-from pathlib import Path
 
-import aiofiles
+from pychirpha.const import CLASSES, CONF_APPLICATION_ID, DOMAIN, GRPCLIENT, MQTTCLIENT
+from pychirpha.grpc import ChirpGrpc
+from pychirpha.mqtt import ChirpToHA
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .const import CONF_APPLICATION_ID, DOMAIN, GRPCLIENT, MQTTCLIENT
-from .grpc import ChirpGrpc
-from .mqtt import ChirpToHA
-
 _LOGGER = logging.getLogger(__name__)
 __version__ = "1.2.0"
-
-# https://stackoverflow.com/questions/2183233/how-to-add-a-custom-loglevel-to-pythons-logging-facility/13638084#13638084
-DETAILED_LEVEL_NUM = 5
-logging.addLevelName(DETAILED_LEVEL_NUM, "DETAIL")
-
-
-def detail(self, message, *args, **kws):
-    """Set up 'detail' logging level."""
-    if self.isEnabledFor(DETAILED_LEVEL_NUM):
-        self._log(DETAILED_LEVEL_NUM, message, args, **kws)
-
-
-logging.Logger.detail = detail  # type: ignore[attr-defined]
-# https://stackoverflow.com/questions/2183233/how-to-add-a-custom-loglevel-to-pythons-logging-facility/13638084#13638084
 
 #  List of platforms to support. There should be a matching .py file for each,
 #  eg <cover.py> and <sensor.py>
@@ -48,17 +30,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     grpc_client = ChirpGrpc(entry.data, __version__)
-    try:
-        async with aiofiles.open(
-            Path(__file__).with_name("classes.json").absolute()
-        ) as file:
-            classes = json.loads(await file.read())
-    except Exception:  # noqa: BLE001
-        classes = None
-        _LOGGER.warning(
-            "File classes.json not loaded, device class defaults might be affected"
-        )
-    mqtt_client = ChirpToHA(entry.data, __version__, classes, grpc_client)
+    mqtt_client = ChirpToHA(entry.data, __version__, CLASSES, grpc_client)
 
     entry.runtime_data = {
         GRPCLIENT: grpc_client,

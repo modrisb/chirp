@@ -3,26 +3,30 @@
 import asyncio
 import time
 
+from pychirpha.const import CONF_APPLICATION_ID
 import pytest
 
-from homeassistant.components.chirp.const import CONF_APPLICATION_ID
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
-from .patches import get_size, message, mqtt, set_size
-
-from tests.components.chirp import common
+from . import common
+from .patches import get_size, mqtt, set_size
 
 
 @pytest.fixture(autouse=True)
 def cleanup():
     """Reset mock settings and close mqtt connection if needed."""
-    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_mock()    #   default mock settings
+    mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION2
+    ).reset_mock()  #   default mock settings
     yield
     # teardown - close mqtt connection if needed
-    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).reset_mock()    #   default mock settings
+    mqtt.Client(
+        mqtt.CallbackAPIVersion.VERSION2
+    ).reset_mock()  #   default mock settings
 
-async def test_extended_debug_level(hass: HomeAssistant):
+
+async def test_extended_debug_level(hass: HomeAssistant) -> None:
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_level_names_with_indexes(
@@ -42,7 +46,7 @@ async def test_extended_debug_level(hass: HomeAssistant):
     )
 
 
-async def test_level_names_with_indexes(hass: HomeAssistant):
+async def test_level_names_with_indexes(hass: HomeAssistant) -> None:
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_level_names_with_indexes(
@@ -61,7 +65,7 @@ async def test_level_names_with_indexes(hass: HomeAssistant):
     await common.chirp_setup_and_run_test(hass, True, run_test_level_names_with_indexes)
 
 
-async def test_values_template_default(hass: HomeAssistant):
+async def test_values_template_default(hass: HomeAssistant) -> None:
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_values_template_default(
@@ -80,7 +84,7 @@ async def test_values_template_default(hass: HomeAssistant):
     await common.chirp_setup_and_run_test(hass, True, run_test_values_template_default)
 
 
-async def test_explicit_integration_setting(hass: HomeAssistant):
+async def test_explicit_integration_setting(hass: HomeAssistant) -> None:
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_values_template_default(
@@ -97,7 +101,7 @@ async def test_explicit_integration_setting(hass: HomeAssistant):
     await common.chirp_setup_and_run_test(hass, True, run_test_values_template_default)
 
 
-async def test_no_device_class(hass: HomeAssistant):  #######
+async def test_no_device_class(hass: HomeAssistant) -> None:  #######
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_no_device_class(hass: HomeAssistant, config: ConfigEntry):
@@ -111,7 +115,7 @@ async def test_no_device_class(hass: HomeAssistant):  #######
     await common.chirp_setup_and_run_test(hass, True, run_test_no_device_class)
 
 
-async def test_wrong_device_class(hass: HomeAssistant):
+async def test_wrong_device_class(hass: HomeAssistant) -> None:
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_wrong_device_class(hass: HomeAssistant, config: ConfigEntry):
@@ -125,7 +129,7 @@ async def test_wrong_device_class(hass: HomeAssistant):
     await common.chirp_setup_and_run_test(hass, True, run_test_wrong_device_class)
 
 
-async def test_command_topic(hass: HomeAssistant):  ########
+async def test_command_topic(hass: HomeAssistant) -> None:  ########
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_command_topic(hass: HomeAssistant, config: ConfigEntry):
@@ -139,7 +143,7 @@ async def test_command_topic(hass: HomeAssistant):  ########
     await common.chirp_setup_and_run_test(hass, True, run_test_command_topic)
 
 
-async def test_humidifier_dev_class(hass: HomeAssistant):  ########
+async def test_humidifier_dev_class(hass: HomeAssistant) -> None:  ########
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_humidifier_dev_class(hass: HomeAssistant, config: ConfigEntry):
@@ -153,7 +157,7 @@ async def test_humidifier_dev_class(hass: HomeAssistant):  ########
     await common.chirp_setup_and_run_test(hass, True, run_test_humidifier_dev_class)
 
 
-async def test_ha_status_received(hass: HomeAssistant):
+async def test_ha_status_received(hass: HomeAssistant) -> None:
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_ha_status_received(hass: HomeAssistant, config: ConfigEntry):
@@ -200,15 +204,13 @@ async def test_ha_status_received(hass: HomeAssistant):
             topic = f"application/{config.data.get(CONF_APPLICATION_ID)}/device/{dev_eui}/event/cur"
             msg = f'{{"time_stamp":{time.time() - 200}}}'
             mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).publish(topic, msg)
-            print("dev_eui ",dev_eui, topic, msg)
         mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).wait_empty_queue()
         await hass.async_block_till_done()
         config_topics = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).get_published()
-        print("config_topics ", config_topics)
         # check for topic count matching device count
         assert (
             len(config_topics)
-            == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices *2 +1
+            == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices * 2 + 1
         )
         for i in range(mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices):
             dev_eui = f"dev_eui{i}"
@@ -231,7 +233,7 @@ async def test_ha_status_received(hass: HomeAssistant):
     await common.chirp_setup_and_run_test(hass, True, run_test_ha_status_received)
 
 
-async def test_ha_status_received_with_debug_log(hass: HomeAssistant):
+async def test_ha_status_received_with_debug_log(hass: HomeAssistant) -> None:
     """Test diagnostics log content for hat fw version starting from 1.6."""
 
     async def run_test_ha_status_received_with_debug_log(
@@ -286,7 +288,8 @@ async def test_ha_status_received_with_debug_log(hass: HomeAssistant):
         # check for topic count matching device count
         assert (
             len(config_topics)
-            == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices * 2 + 1   # msgs sent + response for registered only
+            == mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices * 2
+            + 1  # msgs sent + response for registered only
         )
         for i in range(mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).stat_devices):
             dev_eui = f"dev_eui{i}"
@@ -309,7 +312,7 @@ async def test_ha_status_received_with_debug_log(hass: HomeAssistant):
     )
 
 
-async def test_payload_join(hass: HomeAssistant):
+async def test_payload_join(hass: HomeAssistant) -> None:
     """Test payload join for array data with more than 1 sublevel."""
 
     async def run_test_payload_join(hass: HomeAssistant, config: ConfigEntry):

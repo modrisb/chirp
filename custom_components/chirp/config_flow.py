@@ -3,24 +3,7 @@
 import logging
 from typing import Any
 
-import voluptuous as vol
-
-from homeassistant import core, data_entry_flow, exceptions
-from homeassistant.config_entries import (
-    CONN_CLASS_LOCAL_POLL,
-    SOURCE_RECONFIGURE,
-    SOURCE_USER,
-    ConfigEntry,
-    ConfigFlow,
-    ConfigFlowResult,
-)
-from homeassistant.helpers.selector import (
-    SelectSelector,
-    SelectSelectorConfig,
-    SelectSelectorMode,
-)
-
-from .const import (
+from pychirpha.const import (
     CONF_API_KEY,
     CONF_API_PORT,
     CONF_API_SERVER,
@@ -55,8 +38,24 @@ from .const import (
     DEFAULT_TENANT,
     DOMAIN,
 )
-from .grpc import ChirpGrpc
-from .mqtt import ChirpToHA
+from pychirpha.grpc import ChirpGrpc
+from pychirpha.mqtt import ChirpToHA
+import voluptuous as vol
+
+from homeassistant import core, data_entry_flow, exceptions
+from homeassistant.config_entries import (
+    CONN_CLASS_LOCAL_POLL,
+    SOURCE_RECONFIGURE,
+    SOURCE_USER,
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+)
+from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -96,7 +95,6 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
         if self._grpc_channel:
             self._grpc_channel.close()
             self._grpc_channel = None
-            _LOGGER.debug("__del__ causing grpc close")
 
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
@@ -285,7 +283,7 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
                         "ChirpConfigFlow.async_step_configure_mqtt creating configuration entry"
                     )
                     return self.async_create_entry(
-                        title=f"{self._gateway_id}",
+                        title=f"LoRaWAN gateway {self._gateway_id}",
                         data=self._input,
                         options={
                             CONF_OPTIONS_START_DELAY: DEFAULT_OPTIONS_START_DELAY,

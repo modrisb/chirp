@@ -1,13 +1,10 @@
 """Common routines/constants for bridge tests."""
 
 import asyncio
-import logging
 import re
 from unittest import mock
 
-import pytest
-
-from homeassistant.components.chirp.const import (
+from pychirpha.const import (
     CONF_API_KEY,
     CONF_API_PORT,
     CONF_API_SERVER,
@@ -25,11 +22,11 @@ from homeassistant.components.chirp.const import (
     CONF_TENANT,
     DEFAULT_OPTIONS_DEBUG_PAYLOAD,
     DOMAIN,
-    MQTTCLIENT,
 )
+
 from homeassistant.core import HomeAssistant
 
-from .patches import api, grpc, message, mqtt, set_size
+from .patches import api, grpc, mqtt, set_size
 
 from tests.common import MockConfigEntry
 
@@ -59,9 +56,10 @@ CONFIG_OPTIONS = {
 # pytest tests/components/chirp/
 # pytest tests/components/chirp/ --cov=homeassistant.components.chirp --cov-report term-missing -vv
 
-@mock.patch("homeassistant.components.chirp.grpc.api", new=api)
-@mock.patch("homeassistant.components.chirp.grpc.grpc", new=grpc)
-@mock.patch("homeassistant.components.chirp.mqtt.mqtt", new=mqtt)
+
+@mock.patch("pychirpha.grpc.api", new=api)
+@mock.patch("pychirpha.grpc.grpc", new=grpc)
+@mock.patch("pychirpha.mqtt.mqtt", new=mqtt)
 async def chirp_setup_and_run_test(
     hass: HomeAssistant,
     expected_entry_setup,
@@ -89,7 +87,9 @@ async def chirp_setup_and_run_test(
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id) == expected_entry_setup
 
-    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).publish(f"{entry.data.get(CONF_MQTT_DISC)}/status", "online")
+    mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).publish(
+        f"{entry.data.get(CONF_MQTT_DISC)}/status", "online"
+    )
 
     mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).wait_empty_queue()
     await hass.async_block_till_done()
@@ -102,10 +102,14 @@ async def chirp_setup_and_run_test(
     await asyncio.sleep(0.5)
     await hass.config_entries.async_unload(entry.entry_id)
 
-@mock.patch("homeassistant.components.chirp.grpc.api", new=api)
-@mock.patch("homeassistant.components.chirp.grpc.grpc", new=grpc)
-@mock.patch("homeassistant.components.chirp.mqtt.mqtt", new=mqtt)
-async def chirp_get_working_configuration(hass: HomeAssistant, gateway_id="gatewayId0",):
+
+@mock.patch("pychirpha.grpc.api", new=api)
+@mock.patch("pychirpha.grpc.grpc", new=grpc)
+@mock.patch("pychirpha.mqtt.mqtt", new=mqtt)
+async def chirp_get_working_configuration(
+    hass: HomeAssistant,
+    gateway_id="gatewayId0",
+):
     """Execute test case in standard configuration environment with grpc/mqtt mocks."""
 
     set_size(tenants=2, applications=2)  # report 2 tenants, 2 applications
@@ -122,6 +126,7 @@ async def chirp_get_working_configuration(hass: HomeAssistant, gateway_id="gatew
     assert await hass.config_entries.async_setup(entry.entry_id)
 
     return entry
+
 
 async def reload_devices(hass: HomeAssistant, config):
     """Reload devices from ChirpStack server and wait for activity completion."""

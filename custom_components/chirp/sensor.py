@@ -2,6 +2,17 @@
 
 import logging
 
+from pychirpha.const import (
+    BRIDGE_NAME,
+    BRIDGE_VENDOR,
+    DOMAIN,
+    INTEGRATION_DEV_NAME,
+    MQTTCLIENT,
+    STATISTICS_DEVICES,
+    STATISTICS_SENSORS,
+    STATISTICS_UPDATED,
+)
+
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
@@ -12,17 +23,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-
-from .const import (
-    BRIDGE_NAME,
-    BRIDGE_VENDOR,
-    DOMAIN,
-    INTEGRATION_DEV_NAME,
-    MQTTCLIENT,
-    STATISTICS_DEVICES,
-    STATISTICS_SENSORS,
-    STATISTICS_UPDATED,
-)
 
 _LOGGER = logging.getLogger(__name__)
 
