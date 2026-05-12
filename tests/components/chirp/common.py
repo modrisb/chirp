@@ -21,9 +21,9 @@ from pychirpha.const import (
     CONF_OPTIONS_START_DELAY,
     CONF_TENANT,
     DEFAULT_OPTIONS_DEBUG_PAYLOAD,
-    DOMAIN,
 )
 
+from homeassistant.components.chirp.const import DOMAIN
 from homeassistant.core import HomeAssistant
 
 from .patches import api, grpc, mqtt, set_size

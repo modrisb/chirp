@@ -7,6 +7,6 @@
   "documentation": "https://github.com/modrisb/chirp/",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/modrisb/chirp/issues",
-  "requirements": ["git+https://github.com/modrisb/pychirpha.git@1.1.5"],
-  "version": "1.2.1"
+  "requirements": ["pychirpha @ git+https://github.com/modrisb/pychirpha.git@1.1.9#pychirpha==1.1.9"],
+  "version": "1.2.2"
 }

@@ -10,9 +10,6 @@ from pychirpha.const import (
     CONF_API_SERVER,
     CONF_APPLICATION,
     CONF_APPLICATION_ID,
-    CONF_CHIRP_SERVER_RESERVED,
-    CONF_ERROR_CHIRP_CONN_FAILED,
-    CONF_ERROR_MQTT_CONN_FAILED,
     CONF_MQTT_CHIRPSTACK_PREFIX,
     CONF_MQTT_DISC,
     CONF_MQTT_PORT,
@@ -26,11 +23,16 @@ from pychirpha.const import (
     DEFAULT_OPTIONS_DEBUG_PAYLOAD,
     DEFAULT_OPTIONS_RESTORE_AGE,
     DEFAULT_OPTIONS_START_DELAY,
-    DOMAIN,
 )
 import pytest
 
 from homeassistant import config_entries, data_entry_flow
+from homeassistant.components.chirp.const import (
+    CONF_CHIRP_SERVER_RESERVED,
+    CONF_ERROR_CHIRP_CONN_FAILED,
+    CONF_ERROR_MQTT_CONN_FAILED,
+    DOMAIN,
+)
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 
@@ -594,3 +596,25 @@ async def test_reconfiguration(
     assert config_entry.state is ConfigEntryState.LOADED
 
     await hass.config_entries.async_unload(config_entry.entry_id)
+
+@mock.patch("pychirpha.grpc.api", new=api)
+@mock.patch("pychirpha.grpc.grpc", new=grpc)
+@mock.patch("pychirpha.mqtt.mqtt", new=mqtt)
+async def test_reauth(hass: HomeAssistant, caplog: pytest.LogCaptureFixture) -> None:
+    """Test if predefined/correct configuration is operational."""
+
+    caplog.set_level(5)
+    config_entry = await common.chirp_get_working_configuration(hass)
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN,
+        context={
+            "source": config_entries.SOURCE_REAUTH,
+            "entry_id": config_entry.entry_id,
+        },
+        data=config_entry.data,
+    )
+    assert result["type"] == data_entry_flow.FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["errors"] == {}
+    _LOGGER.detail("Configuration flow @ %s", result["step_id"])

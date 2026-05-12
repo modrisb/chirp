@@ -2,11 +2,11 @@
 
 import asyncio
 
-from pychirpha.const import DOMAIN, MQTTCLIENT
 from pychirpha.mqtt import ChirpToHA
 import pytest
 
 from homeassistant.components.button import DOMAIN as BUTTON_DOMAIN, SERVICE_PRESS
+from homeassistant.components.chirp.const import DOMAIN, MQTTCLIENT
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
@@ -36,12 +36,13 @@ async def test_devices_reload_button_press(
     async def run_test_devices_reload_button_press(hass: HomeAssistant, entry):
         assert entry.state is ConfigEntryState.LOADED
         mqtt_client: ChirpToHA = entry.runtime_data[MQTTCLIENT]
-        entity_ids = hass.states.async_entity_ids(BUTTON_DOMAIN)  # (BUTTON_DOMAIN)
         initial_last_update = mqtt_client.last_update
         initial_dev_count = mqtt_client.dev_count
         initial_dev_sensor_count = mqtt_client.dev_sensor_count
         mqtt.Client(mqtt.CallbackAPIVersion.VERSION2).wait_empty_queue()
         await hass.async_block_till_done()
+        entity_ids = hass.states.async_entity_ids(BUTTON_DOMAIN)  # (BUTTON_DOMAIN)
+        assert len(entity_ids) >= 1
         await asyncio.sleep(0.01)
         set_size(devices=get_size("devices") + 1)
         for entity_id in entity_ids:

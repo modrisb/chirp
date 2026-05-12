@@ -9,9 +9,6 @@ from pychirpha.const import (
     CONF_API_SERVER,
     CONF_APPLICATION,
     CONF_APPLICATION_ID,
-    CONF_CHIRP_SERVER_RESERVED,
-    CONF_ERROR_CHIRP_CONN_FAILED,
-    CONF_ERROR_MQTT_CONN_FAILED,
     CONF_MQTT_CHIRPSTACK_PREFIX,
     CONF_MQTT_DISC,
     CONF_MQTT_PORT,
@@ -36,25 +33,33 @@ from pychirpha.const import (
     DEFAULT_OPTIONS_RESTORE_AGE,
     DEFAULT_OPTIONS_START_DELAY,
     DEFAULT_TENANT,
-    DOMAIN,
 )
 from pychirpha.grpc import ChirpGrpc
 from pychirpha.mqtt import ChirpToHA
 import voluptuous as vol
 
-from homeassistant import core, data_entry_flow, exceptions
+from homeassistant import data_entry_flow, exceptions
 from homeassistant.config_entries import (
     CONN_CLASS_LOCAL_POLL,
+    SOURCE_REAUTH,
     SOURCE_RECONFIGURE,
     SOURCE_USER,
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
 )
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
+)
+
+from .const import (
+    CONF_CHIRP_SERVER_RESERVED,
+    CONF_ERROR_CHIRP_CONN_FAILED,
+    CONF_ERROR_MQTT_CONN_FAILED,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -72,6 +77,9 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
     _tenant_id: str | None = None
     _app_id: str | None = None
     _gateway_id: str | None = None
+    _gateway_name: str | None = None
+    _tenant_name: str | None = None
+    _app_name: str | None = None
 
     def __init__(self) -> None:
         """Set initial values for ChirpConfigFlow."""
@@ -96,6 +104,14 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
             self._grpc_channel.close()
             self._grpc_channel = None
 
+    async def async_step_reauth(
+        self, entry_data: dict[str, Any]
+    ) -> ConfigFlowResult:
+        """Handle re-authentication of the integration."""
+        if entry_data:
+            self._config_defaults = entry_data.copy()
+        return await self.async_step_user()
+
     async def async_step_reconfigure(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -109,7 +125,7 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Run initial configuration step, check grpc api server access, proceed to tenant/application selection."""
         errors: dict[str, str] = {}
-        if not self._grpc_channel and self.source == SOURCE_RECONFIGURE:
+        if not self._grpc_channel and self.source in (SOURCE_RECONFIGURE, SOURCE_REAUTH):
             self._grpc_channel = ChirpGrpc(self._config_defaults, None)
             self._gateway_id = self._grpc_channel.gateway_id
             self._tenants_list = self._grpc_channel.get_chirp_tenants()
@@ -123,6 +139,7 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
                     self._grpc_channel.close()
                 self._grpc_channel = ChirpGrpc(self._config_defaults, None)
                 self._gateway_id = self._grpc_channel.gateway_id
+                self._gateway_name = self._grpc_channel.gateway_name
                 self._tenants_list = self._grpc_channel.get_chirp_tenants()
                 _LOGGER.debug("tenants_list %s", self._tenants_list)
                 self._input = user_input
@@ -172,8 +189,8 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._input |= user_input
             self._config_defaults = self._config_defaults | user_input
-            selected_tenant = user_input.get(CONF_TENANT, "")
-            self._tenant_id = self._tenants_list.get(selected_tenant)
+            self._tenant_name = user_input.get(CONF_TENANT, "")
+            self._tenant_id = self._tenants_list.get(self._tenant_name)
             self._apps_list = (
                 self._grpc_channel.get_tenant_applications(self._tenant_id)
                 if self._grpc_channel
@@ -211,8 +228,8 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self._input |= user_input
             self._config_defaults = self._config_defaults | user_input
-            selected_app = user_input.get(CONF_APPLICATION, "")
-            self._app_id = self._apps_list.get(selected_app)
+            self._app_name = user_input.get(CONF_APPLICATION, "")
+            self._app_id = self._apps_list.get(self._app_name)
             self._input[CONF_APPLICATION_ID] = self._app_id
             return await self.async_step_configure_mqtt()
 
@@ -247,11 +264,11 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
             self._config_defaults = self._config_defaults | user_input
 
             try:
-                await self.async_set_unique_id(self._gateway_id)
+                await self.async_set_unique_id(f"{self._gateway_name}")
                 try:
                     if self.source == SOURCE_USER:
                         self._abort_if_unique_id_configured()
-                    if self.source == SOURCE_RECONFIGURE:
+                    if self.source in (SOURCE_RECONFIGURE, SOURCE_REAUTH):
                         self._abort_if_unique_id_mismatch()
                 except data_entry_flow.AbortFlow:
                     return self.async_abort(reason=CONF_CHIRP_SERVER_RESERVED)
@@ -264,7 +281,7 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
                         self._grpc_channel,
                         connectivity_check_only=True,
                     ).close()
-                if self.source == SOURCE_RECONFIGURE:
+                if self.source in (SOURCE_RECONFIGURE, SOURCE_REAUTH):
                     _LOGGER.info(
                         "ChirpConfigFlow.async_step_configure_mqtt finalizing reconfiguration"
                     )
@@ -283,7 +300,7 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
                         "ChirpConfigFlow.async_step_configure_mqtt creating configuration entry"
                     )
                     return self.async_create_entry(
-                        title=f"LoRaWAN gateway {self._gateway_id}",
+                        title=f"LoRaWAN gateway {self._gateway_name}, tenant {self._tenant_name}, application {self._app_name}",
                         data=self._input,
                         options={
                             CONF_OPTIONS_START_DELAY: DEFAULT_OPTIONS_START_DELAY,
@@ -298,10 +315,11 @@ class ChirpConfigFlow(ConfigFlow, domain=DOMAIN):
                     user_input[CONF_MQTT_SERVER],
                     user_input[CONF_MQTT_PORT],
                     str(error),
-                    # exc_info=1,
                 )
                 errors[CONF_MQTT_SERVER] = CONF_ERROR_MQTT_CONN_FAILED
 
+        if self.source == SOURCE_USER and self._config_defaults.get(CONF_MQTT_SERVER) == DEFAULT_MQTT_SERVER:
+            self._config_defaults[CONF_MQTT_SERVER] = self._input.get(CONF_API_SERVER, DEFAULT_MQTT_SERVER)
         return self.async_show_form(
             step_id="configure_mqtt",
             data_schema=vol.Schema(

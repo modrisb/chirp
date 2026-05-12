@@ -786,6 +786,7 @@ class api:
                     gateway = lambda: None  # noqa: E731
                     gateway.dev_eui = f"dev_eui{i}"
                     gateway.gateway_id = "gatewayId0"  # f"gatewayId{i}"
+                    gateway.name = gateway.gateway_id
                     gateway.tenant_id = f"TenantId{i}"
                     request.result.append(gateway)
             request.total_count = no_of_gateways

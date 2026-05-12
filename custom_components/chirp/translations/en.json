@@ -1,7 +1,7 @@
 {
     "config": {
         "abort": {
-            "chirp_server_reserved": "No tenants on configured ChirpStack server, create one and retry configuration",
+            "chirp_server_reserved": "Entity with the same unique id (gateway id) has been already configured",
             "reconfigure_successful": "Reconfiguration completed"
         },
         "error": {
@@ -11,7 +11,7 @@
         "step": {
             "configure_mqtt": {
                 "data": {
-                    "discovery_prefix": "HomeAssistant MQTT discovery prefix",
+                    "discovery_prefix": "Home Assistant MQTT discovery prefix",
                     "mqtt_chirpstack_prefix": "ChirpStack MQTT prefix",
                     "mqtt_password": "MQTT user password",
                     "mqtt_port": "MQTT server port",
@@ -19,12 +19,12 @@
                     "mqtt_user": "MQTT user name"
                 },
                 "data_description": {
-                    "discovery_prefix": "HomeAssistant MQTT discovery prefix",
-                    "mqtt_chirpstack_prefix": "ChirpStack MQTT prefix",
-                    "mqtt_password": "MQTT user password",
-                    "mqtt_port": "MQTT server port",
-                    "mqtt_server": "MQTT server",
-                    "mqtt_user": "MQTT user name"
+                    "discovery_prefix": "Set Home Assistant MQTT discovery message prefix",
+                    "mqtt_chirpstack_prefix": "Set ChirpStack MQTT message prefix",
+                    "mqtt_password": "Set MQTT user password",
+                    "mqtt_port": "Set MQTT server port",
+                    "mqtt_server": "MQTT server IP or DNS name",
+                    "mqtt_user": "MQTT user name to use for connection to server"
                 },
                 "title": "Configure MQTT server used by ChirpStack and HomeAssistant"
             },
@@ -44,7 +44,7 @@
                     "application_name": "Select application"
                 },
                 "data_description": {
-                    "application_name": "Select application"
+                    "application_name": "Select application from tenant list to query devices"
                 },
                 "title": "Select tenant's application for listing devices"
             },
@@ -53,7 +53,7 @@
                     "tenant": "Select tenant"
                 },
                 "data_description": {
-                    "tenant": "Select tenant"
+                    "tenant": "Select tenant containing application to use for device query"
                 },
                 "title": "Select ChirpStack tenant for application selection"
             },
@@ -64,29 +64,52 @@
                     "server_port": "Server port (HTTP Only!)"
                 },
                 "data_description": {
-                    "api_connection_key": "API token",
-                    "chirpstack_api_server": "ChirpStack API server",
-                    "server_port": "Server port (HTTP Only!)"
-                 },
+                    "api_connection_key": "Set API token to use to connect to ChirpStack API server",
+                    "chirpstack_api_server": "Set ChirpStack API server IP or DNS name",
+                    "server_port": "Set ChirpStack API server port (HTTP Only!)"
+                },
                 "title": "Configure ChirpStack API server"
             }
         }
     },
+    "device": {
+        "auto_discovery_device": {
+            "name": "MQTT auto discovery integration"
+        }
+    },
     "entity": {
+        "button": {
+            "chirp_reload": {
+                "name": "Re-load LoRaWan devices"
+            }
+        },
         "sensor": {
             "chirp_devices": {
                 "name": "Number of ChirpStack devices"
             },
             "chirp_sensors": {
-                "name": "Number of LoraWan Sensors"
+                "name": "Number of LoRaWan Sensors"
             },
             "chirp_updated": {
                 "name": "Last updated"
             }
-        },
-        "button": {
-            "chirp_reload": {
-                "name": "Re-load LoraWan devices"
+        }
+    },
+    "entity_component": {
+        "_": {
+            "state_attributes": {
+                "chirp_devices": {
+                    "name": "Number of ChirpStack devices"
+                },
+                "chirp_reload": {
+                    "name": "Re-load LoRaWan devices"
+                },
+                "chirp_sensors": {
+                    "name": "Number of LoRaWan Sensors"
+                },
+                "chirp_updated": {
+                    "name": "Last updated"
+                }
             }
         }
     }

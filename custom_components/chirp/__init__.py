@@ -4,13 +4,23 @@ from __future__ import annotations
 
 import logging
 
-from pychirpha.const import CLASSES, CONF_APPLICATION_ID, DOMAIN, GRPCLIENT, MQTTCLIENT
+from pychirpha.const import BRIDGE_NAME, BRIDGE_VENDOR, CLASSES, CONF_APPLICATION_ID
 from pychirpha.grpc import ChirpGrpc
 from pychirpha.mqtt import ChirpToHA
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceInfo
+
+from .const import (
+    DEVICE_INFO,
+    DOMAIN,
+    GRPCLIENT,
+    INTEGRATION_DEV_NAME,
+    INTEGRATION_DEV_TRANSLATION_KEY,
+    MQTTCLIENT,
+)
 
 _LOGGER = logging.getLogger(__name__)
 __version__ = "1.2.0"
@@ -19,7 +29,6 @@ __version__ = "1.2.0"
 #  eg <cover.py> and <sensor.py>
 PLATFORMS: list[Platform] = [Platform.BUTTON, Platform.SENSOR]
 
-
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Chirp from a config entry."""
     # Store an instance of the "connecting" class that does the work of speaking
@@ -27,7 +36,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug(
         "async_setup_entry application id %s", entry.data.get(CONF_APPLICATION_ID)
     )
-    hass.data.setdefault(DOMAIN, {})
+
+    DEVICE_INFO.append(DeviceInfo(
+            identifiers={(DOMAIN, f"{entry.unique_id}")},
+            name=INTEGRATION_DEV_NAME,
+            manufacturer=BRIDGE_VENDOR,
+            model=BRIDGE_NAME,
+            translation_key=INTEGRATION_DEV_TRANSLATION_KEY,
+        )
+    )
 
     grpc_client = ChirpGrpc(entry.data, __version__)
     mqtt_client = ChirpToHA(entry.data, __version__, CLASSES, grpc_client)
